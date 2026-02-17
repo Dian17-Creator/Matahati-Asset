@@ -19,7 +19,7 @@ class MassetNoQr extends Model
         'niddept',
         'nqty',
         'nminstok',
-        'csatuan',
+        'msatuan_id',   // ✅ WAJIB ADA
         'dtrans',
         'ccatatan',
     ];
@@ -40,4 +40,8 @@ class MassetNoQr extends Model
         return $this->belongsTo(Mdepartment::class, 'niddept', 'nid');
     }
 
+    public function satuan()
+    {
+        return $this->belongsTo(Msatuan::class, 'msatuan_id');
+    }
 }

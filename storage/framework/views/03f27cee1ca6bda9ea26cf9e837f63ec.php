@@ -8,13 +8,61 @@
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalKategori">
                 + Kategori
             </button>
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalSubKategori">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalSubKategori"
+                onclick="openCreateSubKategori()">
                 + Sub Kategori
             </button>
+
             <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalAsset">
                 + Asset
             </button>
         </div>
+
+        
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Master Satuan</span>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalSatuan"
+                    onclick="openCreateSatuan()">
+                    + Tambah Satuan
+                </button>
+            </div>
+
+            <div class="card-body">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Nama</th>
+                            <th width="150">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $__currentLoopData = $satuan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <tr>
+                                <td><?php echo e($i + 1); ?></td>
+                                <td><?php echo e($s->nama); ?></td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#modalSatuan"
+                                        onclick="openEditSatuan(<?php echo e($s->id); ?>, '<?php echo e($s->nama); ?>')">
+                                        Edit
+                                    </button>
+
+                                    <form method="POST" action="<?php echo e(route('msatuan.destroy', $s->id)); ?>" class="d-inline"
+                                        onsubmit="return confirm('Hapus satuan ini?')">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
+                                        <button class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
 
         
         <div class="card mb-4">
@@ -25,6 +73,7 @@
                         <tr>
                             <th>Kode</th>
                             <th>Nama</th>
+                            <th width="150">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -32,9 +81,24 @@
                             <tr>
                                 <td><?php echo e($kat->ckode); ?></td>
                                 <td><?php echo e($kat->cnama); ?></td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#modalKategori"
+                                        onclick="openEditKategori(<?php echo e($kat->nid); ?>, '<?php echo e($kat->ckode); ?>', '<?php echo e($kat->cnama); ?>')">
+                                        Edit
+                                    </button>
+
+                                    <form method="POST" action="<?php echo e(route('asset.kategori.destroy', $kat->nid)); ?>"
+                                        class="d-inline" onsubmit="return confirm('Hapus kategori ini?')">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
+                                        <button class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
+                                </td>
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
+
                 </table>
             </div>
         </div>
@@ -50,6 +114,8 @@
                             <th>Kode</th>
                             <th>Nama</th>
                             <th>Jenis</th>
+                            <th width="200">Aksi</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -65,6 +131,28 @@
                                         <span class="badge bg-secondary">Non QR</span>
                                     <?php endif; ?>
                                 </td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#modalSubKategori"
+                                        onclick="openEditSubKategori(
+                                            <?php echo e($sub->nid); ?>,
+                                            <?php echo e($sub->nidkat); ?>,
+                                            '<?php echo e($sub->ckode); ?>',
+                                            '<?php echo e($sub->cnama); ?>',
+                                            <?php echo e($sub->fqr); ?>
+
+                                        )">
+                                        Edit
+                                    </button>
+
+                                    <form method="POST" action="<?php echo e(route('asset.subkategori.destroy', $sub->nid)); ?>"
+                                        class="d-inline" onsubmit="return confirm('Hapus sub kategori ini?')">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
+                                        <button class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
+                                </td>
+
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
@@ -84,6 +172,8 @@
                             <th>Sub Kategori</th>
                             <th>Counter</th>
                             <th>QR Code</th>
+                            <th>Tgl Beli</th>
+                            <th>Harga Beli</th>
                             <th>Status</th>
                             <th>Catatan</th>
                         </tr>
@@ -96,11 +186,25 @@
                                 <td><?php echo e($qr->subKategori->cnama); ?></td>
                                 <td><?php echo e($qr->nurut); ?></td>
                                 <td><?php echo e($qr->cqr); ?></td>
+
+                                
+                                <td>
+                                    <?php echo e($qr->dbeli ? \Carbon\Carbon::parse($qr->dbeli)->format('d-m-Y') : '-'); ?>
+
+                                </td>
+
+                                
+                                <td>
+                                    <?php echo e($qr->nbeli ? 'Rp ' . number_format($qr->nbeli, 0, ',', '.') : '-'); ?>
+
+                                </td>
+
                                 <td><?php echo e($qr->cstatus); ?></td>
                                 <td><?php echo e($qr->ccatatan); ?></td>
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
+
                 </table>
             </div>
         </div>
@@ -129,7 +233,7 @@
                                 <td><?php echo e($nqr->subKategori->cnama); ?></td>
                                 <td><?php echo e($nqr->nqty); ?></td>
                                 <td><?php echo e($nqr->nminstok); ?></td>
-                                <td><?php echo e($nqr->csatuan); ?></td>
+                                <td><?php echo e($nqr->satuan?->nama ?? '-'); ?></td>
                                 <td><?php echo e($nqr->ccatatan); ?></td>
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -141,10 +245,43 @@
     </div>
 
     
+    <div class="modal fade" id="modalSatuan">
+        <div class="modal-dialog">
+            <form method="POST" id="formSatuan">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="_method" id="methodSatuan" value="POST">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 id="titleSatuan">Tambah Satuan</h5>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-2">
+                            <label>Nama Satuan</label>
+                            <input type="text" name="nama" id="namaSatuan" class="form-control"
+                                placeholder="Pcs / Unit / Set" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
+                        <button class="btn btn-primary" id="btnSatuan">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    
     <div class="modal fade" id="modalKategori">
         <div class="modal-dialog">
             <form method="POST" action="<?php echo e(route('asset.kategori.store')); ?>">
                 <?php echo csrf_field(); ?>
+                <input type="hidden" name="_method" id="methodKategori" value="POST">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5>Tambah Kategori</h5>
@@ -160,7 +297,9 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
                         <button class="btn btn-primary">Simpan</button>
                     </div>
                 </div>
@@ -171,12 +310,15 @@
     
     <div class="modal fade" id="modalSubKategori">
         <div class="modal-dialog">
-            <form method="POST" action="<?php echo e(route('asset.subkategori.store')); ?>">
+            <form method="POST" id="formSubKategori" action="<?php echo e(route('asset.subkategori.store')); ?>">
                 <?php echo csrf_field(); ?>
+                <input type="hidden" name="_method" id="methodSubKategori" value="POST">
+
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5>Tambah Sub Kategori</h5>
+                        <h5 id="titleSubKategori">Tambah Sub Kategori</h5>
                     </div>
+
                     <div class="modal-body">
                         <div class="mb-2">
                             <label>Kategori</label>
@@ -186,14 +328,17 @@
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
+
                         <div class="mb-2">
                             <label>Kode</label>
                             <input type="text" name="ckode" class="form-control" required>
                         </div>
+
                         <div class="mb-2">
                             <label>Nama</label>
                             <input type="text" name="cnama" class="form-control" required>
                         </div>
+
                         <div class="mb-2">
                             <label>Jenis Asset</label>
                             <select name="fqr" class="form-control">
@@ -202,14 +347,18 @@
                             </select>
                         </div>
                     </div>
+
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
                         <button class="btn btn-success">Simpan</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
+
 
     
     <div class="modal fade" id="modalAsset">
@@ -220,11 +369,12 @@
                     <div class="modal-header">
                         <h5>Tambah Asset</h5>
                     </div>
+
                     <div class="modal-body">
 
                         
                         <div class="mb-2">
-                            <label>Lokasi / Department</label>
+                            <label>Lokasi</label>
                             <select name="niddept" class="form-control" required>
                                 <option value="">-- Pilih Lokasi --</option>
                                 <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dept): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -264,14 +414,52 @@
                         </div>
 
                         
+                        <div id="fieldQr" style="display:none">
+                            <div class="mb-2">
+                                <label>Tanggal Beli</label>
+                                <input type="date" name="dbeli" class="form-control">
+                            </div>
+                            <div class="mb-2">
+                                <label>Harga Beli</label>
+                                <input type="number" name="nbeli" class="form-control" min="0">
+                            </div>
+                        </div>
+
+                        
+                        <div id="fieldNonQr" style="display:none">
+                            <div class="mb-2">
+                                <label>Qty</label>
+                                <input type="number" name="nqty" class="form-control" min="1">
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Min Stok</label>
+                                <input type="number" name="nminstok" class="form-control" min="0">
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Satuan</label>
+                                <select name="msatuan_id" class="form-control">
+                                    <option value="">-- Pilih Satuan --</option>
+                                    <?php $__currentLoopData = $satuan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($s->id); ?>"><?php echo e($s->nama); ?></option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        
                         <div class="mb-2">
                             <label>Catatan</label>
                             <textarea name="ccatatan" class="form-control"></textarea>
                         </div>
 
                     </div>
+
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
                         <button class="btn btn-warning">Simpan</button>
                     </div>
                 </div>
@@ -279,30 +467,11 @@
         </div>
     </div>
 
-    
     <script>
-        const kategori = document.getElementById('filterKategori');
-        const subkat = document.getElementById('filterSubKategori');
-        const jenis = document.getElementById('jenisAsset');
-
-        function filterSub() {
-            const kat = kategori.value;
-            [...subkat.options].forEach(opt => {
-                opt.style.display = opt.dataset.kat == kat ? 'block' : 'none';
-            });
-            subkat.selectedIndex = [...subkat.options].findIndex(o => o.style.display === 'block');
-            setJenis();
-        }
-
-        function setJenis() {
-            const fqr = subkat.options[subkat.selectedIndex].dataset.fqr;
-            jenis.value = fqr == 1 ? 'QR' : 'Non QR';
-        }
-
-        kategori.addEventListener('change', filterSub);
-        subkat.addEventListener('change', setJenis);
-        filterSub();
+        window.routeMsatuanStore = "<?php echo e(route('msatuan.store')); ?>";
     </script>
+
+    <script src="<?php echo e(asset('js/asset.js')); ?>"></script>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Matahati-Asset\resources\views/Asset/index.blade.php ENDPATH**/ ?>

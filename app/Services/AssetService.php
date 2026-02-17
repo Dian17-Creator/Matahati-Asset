@@ -17,7 +17,6 @@ class AssetService
     {
         return DB::transaction(function () use ($data) {
 
-            // Ambil sub kategori
             $subkat = MassetSubKat::findOrFail($data['nidsubkat']);
 
             /**
@@ -42,9 +41,9 @@ class AssetService
                     'dbeli'     => $data['dbeli'] ?? null,
                     'nbeli'     => $data['nbeli'] ?? null,
                     'cstatus'   => $data['cstatus'] ?? 'AKTIF',
-                    'dtrans'    => Carbon::now(),
+                    'dtrans'    => now(),
                     'ccatatan'  => $data['ccatatan'] ?? null,
-                    'dcreated'  => Carbon::now(),
+                    'dcreated'  => now(),
                 ]);
             }
 
@@ -54,35 +53,46 @@ class AssetService
              * =========================
              */
 
-            // cek apakah stok sudah ada
+            // VALIDASI WAJIB
+            if (empty($data['msatuan_id'])) {
+                throw new \Exception('Satuan wajib diisi untuk asset Non QR');
+            }
+
+            if (empty($data['nqty'])) {
+                throw new \Exception('Qty wajib diisi untuk asset Non QR');
+            }
+
             $existing = MassetNoQr::where('nidsubkat', $subkat->nid)
-            ->where('niddept', $data['niddept'])
-            ->lockForUpdate()
-            ->first();
+                ->where('niddept', $data['niddept'])
+                ->lockForUpdate()
+                ->first();
 
             if ($existing) {
 
                 MassetNoQr::where('nidsubkat', $subkat->nid)
                     ->where('niddept', $data['niddept'])
                     ->update([
-                        'nqty'     => DB::raw('nqty + ' . ($data['nqty'] ?? 1)),
-                        'ccatatan' => $data['ccatatan'] ?? $existing->ccatatan,
-                        'dtrans'   => now(),
+                        'nqty'       => DB::raw('nqty + ' . (int) $data['nqty']),
+                        'nminstok'   => $data['nminstok'] ?? $existing->nminstok, // ✅ FIX
+                        'msatuan_id' => $data['msatuan_id'],
+                        'ccatatan'   => $data['ccatatan'] ?? $existing->ccatatan,
+                        'dtrans'     => now(),
                     ]);
 
                 return $existing->refresh();
             }
 
-            // jika belum ada → insert
+
             return MassetNoQr::create([
-                'nidsubkat' => $subkat->nid,
-                'niddept'   => $data['niddept'],
-                'nqty'      => $data['nqty'] ?? 1,
-                'nminstok'  => $data['nminstok'] ?? 0,
-                'csatuan'   => $data['csatuan'] ?? null,
-                'dtrans'    => now(),
-                'ccatatan'  => $data['ccatatan'] ?? null,
+                'nidsubkat'   => $subkat->nid,
+                'niddept'    => $data['niddept'],
+                'nqty'       => (int) $data['nqty'],
+                'nminstok'   => $data['nminstok'] ?? 0,
+                'msatuan_id' => $data['msatuan_id'], // ✅
+                'dtrans'     => now(),
+                'ccatatan'   => $data['ccatatan'] ?? null,
             ]);
         });
     }
+
 }
