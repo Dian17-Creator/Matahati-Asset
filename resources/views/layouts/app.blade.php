@@ -84,7 +84,7 @@
             <div class="d-flex align-items-center mx-auto mx-lg-0 gap-2">
 
                 <a class="navbar-brand fw-bold mb-0" href="{{ route('backoffice.index') }}">
-                    Matahati Backoffice
+                    Matahati Asset
                 </a>
 
                 {{-- 🔔 NOTIFIKASI MOBILE --}}
@@ -107,7 +107,7 @@
             <div class="d-none d-lg-flex w-100 justify-content-end">
                 <ul class="navbar-nav ms-auto align-items-center">
 
-                    {{-- 🔔 Ikon Notifikasi --}}
+                    {{-- 🔔 Ikon Notifikasi
                     <li class="nav-item">
                         <a class="nav-link position-relative" href="#" data-bs-toggle="modal"
                             data-bs-target="#notifModal" id="notifButton">
@@ -116,17 +116,17 @@
                         </a>
                     </li>
 
-                    <div class="nav-divider"></div>
+                    <div class="nav-divider"></div> --}}
 
                     {{-- Menu HOME --}}
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('backoffice.index') ? 'fw-bold text-white' : '' }}"
-                            href="{{ route('backoffice.index') }}">HOME</a>
+                            href="{{ route('asset.index') }}">HOME</a>
                     </li>
 
                     <div class="nav-divider"></div>
 
-                    {{-- JADWAL --}}
+                    {{-- JADWAL
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('schedule.index') ? 'fw-bold text-white' : '' }}"
                             href="{{ route('schedule.index') }}">JADWAL</a>
@@ -135,28 +135,28 @@
                     <div class="nav-divider"></div>
 
                     {{-- ABSENSI --}}
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('attendance.index') ? 'fw-bold text-white' : '' }}"
                             href="{{ route('attendance.index') }}">ABSENSI</a>
-                    </li>
+                    </li> --}}
 
-                    <div class="nav-divider"></div>
+                    {{-- <div class="nav-divider"></div> --}}
 
                     {{-- GAJI --}}
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('penggajian.index') ? 'fw-bold text-white' : '' }}"
                             href="{{ route('penggajian.index') }}">GAJI</a>
                     </li>
 
-                    <div class="nav-divider"></div>
+                    <div class="nav-divider"></div> --}}
 
                     {{-- FACES --}}
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('hr.face_approval.index') ? 'fw-bold text-white' : '' }}"
                             href="{{ route('hr.face_approval.index') }}">FACES</a>
                     </li>
 
-                    <div class="nav-divider"></div>
+                    <div class="nav-divider"></div> --}}
 
                     {{-- Tombol Logout --}}
                     <li class="nav-item">
@@ -191,12 +191,12 @@
 
                     <nav class="menu-list">
 
-                        <a href="{{ route('backoffice.index') }}"
+                        <a href="{{ route('asset.index') }}"
                             class="menu-item {{ request()->routeIs('backoffice.index') ? 'active' : '' }}">
                             Home
                         </a>
 
-                        <a href="{{ route('schedule.index') }}"
+                        {{-- <a href="{{ route('schedule.index') }}"
                             class="menu-item {{ request()->routeIs('schedule.index') ? 'active' : '' }}">
                             Jadwal
                         </a>
@@ -214,7 +214,7 @@
                         <a href="{{ route('hr.face_approval.index') }}"
                             class="menu-item {{ request()->routeIs('hr.face_approval.index') ? 'active' : '' }}">
                             Faces
-                        </a>
+                        </a> --}}
 
                         <form action="{{ route('logout') }}" method="POST" class="w-100">
                             @csrf

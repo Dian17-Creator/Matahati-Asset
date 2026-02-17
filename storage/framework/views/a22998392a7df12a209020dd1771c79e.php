@@ -84,7 +84,7 @@
             <div class="d-flex align-items-center mx-auto mx-lg-0 gap-2">
 
                 <a class="navbar-brand fw-bold mb-0" href="<?php echo e(route('backoffice.index')); ?>">
-                    Matahati Backoffice
+                    Matahati Asset
                 </a>
 
                 
@@ -108,55 +108,25 @@
                 <ul class="navbar-nav ms-auto align-items-center">
 
                     
-                    <li class="nav-item">
-                        <a class="nav-link position-relative" href="#" data-bs-toggle="modal"
-                            data-bs-target="#notifModal" id="notifButton">
-                            <i class="bi bi-bell-fill notification-icon"></i>
-                            <span class="notif-badge" id="notifBadge"></span>
-                        </a>
-                    </li>
-
-                    <div class="nav-divider"></div>
 
                     
                     <li class="nav-item">
                         <a class="nav-link <?php echo e(request()->routeIs('backoffice.index') ? 'fw-bold text-white' : ''); ?>"
-                            href="<?php echo e(route('backoffice.index')); ?>">HOME</a>
+                            href="<?php echo e(route('asset.index')); ?>">HOME</a>
                     </li>
 
                     <div class="nav-divider"></div>
 
                     
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo e(request()->routeIs('schedule.index') ? 'fw-bold text-white' : ''); ?>"
-                            href="<?php echo e(route('schedule.index')); ?>">JADWAL</a>
-                    </li>
-
-                    <div class="nav-divider"></div>
+                    
 
                     
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo e(request()->routeIs('attendance.index') ? 'fw-bold text-white' : ''); ?>"
-                            href="<?php echo e(route('attendance.index')); ?>">ABSENSI</a>
-                    </li>
-
-                    <div class="nav-divider"></div>
 
                     
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo e(request()->routeIs('penggajian.index') ? 'fw-bold text-white' : ''); ?>"
-                            href="<?php echo e(route('penggajian.index')); ?>">GAJI</a>
-                    </li>
-
-                    <div class="nav-divider"></div>
+                    
 
                     
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo e(request()->routeIs('hr.face_approval.index') ? 'fw-bold text-white' : ''); ?>"
-                            href="<?php echo e(route('hr.face_approval.index')); ?>">FACES</a>
-                    </li>
-
-                    <div class="nav-divider"></div>
+                    
 
                     
                     <li class="nav-item">
@@ -191,30 +161,12 @@
 
                     <nav class="menu-list">
 
-                        <a href="<?php echo e(route('backoffice.index')); ?>"
+                        <a href="<?php echo e(route('asset.index')); ?>"
                             class="menu-item <?php echo e(request()->routeIs('backoffice.index') ? 'active' : ''); ?>">
                             Home
                         </a>
 
-                        <a href="<?php echo e(route('schedule.index')); ?>"
-                            class="menu-item <?php echo e(request()->routeIs('schedule.index') ? 'active' : ''); ?>">
-                            Jadwal
-                        </a>
-
-                        <a href="<?php echo e(route('attendance.index')); ?>"
-                            class="menu-item <?php echo e(request()->routeIs('attendance.index') ? 'active' : ''); ?>">
-                            Absensi
-                        </a>
-
-                        <a href="<?php echo e(route('penggajian.index')); ?>"
-                            class="menu-item <?php echo e(request()->routeIs('penggajian.index') ? 'active' : ''); ?>">
-                            Gaji
-                        </a>
-
-                        <a href="<?php echo e(route('hr.face_approval.index')); ?>"
-                            class="menu-item <?php echo e(request()->routeIs('hr.face_approval.index') ? 'active' : ''); ?>">
-                            Faces
-                        </a>
+                        
 
                         <form action="<?php echo e(route('logout')); ?>" method="POST" class="w-100">
                             <?php echo csrf_field(); ?>

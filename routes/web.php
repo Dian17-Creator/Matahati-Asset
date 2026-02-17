@@ -23,6 +23,7 @@ use App\Http\Controllers\FaceApprovalController;
 use App\Http\Controllers\AdminDeviceController;
 use App\Http\Controllers\UserExportController;
 use App\Http\Controllers\MscanForgotController;
+use App\Http\Controllers\AssetController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NotifikasiEmail;
 
@@ -246,4 +247,22 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/forgot/{id}/approve', [MscanForgotController::class, 'approve'])
         ->name('forgot.approve');
 
+
+    // ----------------------------------------------------------------------------------------
+
+    // Route Assets----------------------------------------------------------------------------
+    Route::get('/asset', [AssetController::class, 'index'])
+        ->middleware('auth')
+        ->name('asset.index');
+
+    Route::post('/asset/store', [AssetController::class, 'store'])
+        ->name('asset.store');
+
+    Route::get('/asset/master', [AssetController::class, 'index']);
+
+    Route::post('/asset/kategori', [AssetController::class, 'storeKategori'])
+        ->name('asset.kategori.store');
+
+    Route::post('/asset/subkategori', [AssetController::class, 'storeSubKategori'])
+        ->name('asset.subkategori.store');
 });
