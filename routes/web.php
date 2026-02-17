@@ -3,30 +3,46 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\MsatuanController;
 
-Route::get('/', function () {
-    return redirect('/login');
-});
+// AUTH
+Route::get('/', fn () => redirect('/login'));
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+// PROTECTED ROUTES
 Route::middleware(['auth'])->group(function () {
 
-    // Route Assets----------------------------------------------------------------------------
-    Route::get('/asset', [AssetController::class, 'index'])
-        ->middleware('auth')
-        ->name('asset.index');
+    // ASSET
+    Route::prefix('asset')->name('asset.')->group(function () {
 
-    Route::post('/asset/store', [AssetController::class, 'store'])
-        ->name('asset.store');
+        Route::get('/', [AssetController::class, 'index'])->name('index');
+        Route::post('/', [AssetController::class, 'store'])->name('store');
 
-    Route::get('/asset/master', [AssetController::class, 'index']);
+        // KATEGORI
+        Route::prefix('kategori')->name('kategori.')->group(function () {
+            Route::post('/', [AssetController::class, 'storeKategori'])->name('store');
+            Route::put('/{id}', [AssetController::class, 'updateKategori'])->name('update');
+            Route::delete('/{id}', [AssetController::class, 'deleteKategori'])->name('destroy');
+        });
 
-    Route::post('/asset/kategori', [AssetController::class, 'storeKategori'])
-        ->name('asset.kategori.store');
+        // SUB KATEGORI
+        Route::prefix('subkategori')->name('subkategori.')->group(function () {
+            Route::post('/', [AssetController::class, 'storeSubKategori'])->name('store');
+            Route::put('/{id}', [AssetController::class, 'updateSubKategori'])->name('update');
+            Route::delete('/{id}', [AssetController::class, 'deleteSubKategori'])->name('destroy');
+        });
 
-    Route::post('/asset/subkategori', [AssetController::class, 'storeSubKategori'])
-        ->name('asset.subkategori.store');
+    });
+
+    // MSATUAN
+    Route::prefix('msatuan')->name('msatuan.')->group(function () {
+        Route::get('/', [MsatuanController::class, 'index'])->name('index');
+        Route::post('/', [MsatuanController::class, 'store'])->name('store');
+        Route::put('/{id}', [MsatuanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [MsatuanController::class, 'destroy'])->name('destroy');
+    });
+
 });

@@ -10,13 +10,61 @@
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalKategori">
                 + Kategori
             </button>
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalSubKategori">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalSubKategori"
+                onclick="openCreateSubKategori()">
                 + Sub Kategori
             </button>
+
             <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalAsset">
                 + Asset
             </button>
         </div>
+
+        {{-- ================= MASTER SATUAN ================= --}}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Master Satuan</span>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalSatuan"
+                    onclick="openCreateSatuan()">
+                    + Tambah Satuan
+                </button>
+            </div>
+
+            <div class="card-body">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Nama</th>
+                            <th width="150">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($satuan as $i => $s)
+                            <tr>
+                                <td>{{ $i + 1 }}</td>
+                                <td>{{ $s->nama }}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#modalSatuan"
+                                        onclick="openEditSatuan({{ $s->id }}, '{{ $s->nama }}')">
+                                        Edit
+                                    </button>
+
+                                    <form method="POST" action="{{ route('msatuan.destroy', $s->id) }}" class="d-inline"
+                                        onsubmit="return confirm('Hapus satuan ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
 
         {{-- ================= KATEGORI ================= --}}
         <div class="card mb-4">
@@ -27,6 +75,7 @@
                         <tr>
                             <th>Kode</th>
                             <th>Nama</th>
+                            <th width="150">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -34,9 +83,24 @@
                             <tr>
                                 <td>{{ $kat->ckode }}</td>
                                 <td>{{ $kat->cnama }}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#modalKategori"
+                                        onclick="openEditKategori({{ $kat->nid }}, '{{ $kat->ckode }}', '{{ $kat->cnama }}')">
+                                        Edit
+                                    </button>
+
+                                    <form method="POST" action="{{ route('asset.kategori.destroy', $kat->nid) }}"
+                                        class="d-inline" onsubmit="return confirm('Hapus kategori ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
+
                 </table>
             </div>
         </div>
@@ -52,6 +116,8 @@
                             <th>Kode</th>
                             <th>Nama</th>
                             <th>Jenis</th>
+                            <th width="200">Aksi</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -67,6 +133,27 @@
                                         <span class="badge bg-secondary">Non QR</span>
                                     @endif
                                 </td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#modalSubKategori"
+                                        onclick="openEditSubKategori(
+                                            {{ $sub->nid }},
+                                            {{ $sub->nidkat }},
+                                            '{{ $sub->ckode }}',
+                                            '{{ $sub->cnama }}',
+                                            {{ $sub->fqr }}
+                                        )">
+                                        Edit
+                                    </button>
+
+                                    <form method="POST" action="{{ route('asset.subkategori.destroy', $sub->nid) }}"
+                                        class="d-inline" onsubmit="return confirm('Hapus sub kategori ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
+                                </td>
+
                             </tr>
                         @endforeach
                     </tbody>
@@ -86,6 +173,8 @@
                             <th>Sub Kategori</th>
                             <th>Counter</th>
                             <th>QR Code</th>
+                            <th>Tgl Beli</th>
+                            <th>Harga Beli</th>
                             <th>Status</th>
                             <th>Catatan</th>
                         </tr>
@@ -98,11 +187,23 @@
                                 <td>{{ $qr->subKategori->cnama }}</td>
                                 <td>{{ $qr->nurut }}</td>
                                 <td>{{ $qr->cqr }}</td>
+
+                                {{-- Tanggal Beli --}}
+                                <td>
+                                    {{ $qr->dbeli ? \Carbon\Carbon::parse($qr->dbeli)->format('d-m-Y') : '-' }}
+                                </td>
+
+                                {{-- Harga Beli --}}
+                                <td>
+                                    {{ $qr->nbeli ? 'Rp ' . number_format($qr->nbeli, 0, ',', '.') : '-' }}
+                                </td>
+
                                 <td>{{ $qr->cstatus }}</td>
                                 <td>{{ $qr->ccatatan }}</td>
                             </tr>
                         @endforeach
                     </tbody>
+
                 </table>
             </div>
         </div>
@@ -131,7 +232,7 @@
                                 <td>{{ $nqr->subKategori->cnama }}</td>
                                 <td>{{ $nqr->nqty }}</td>
                                 <td>{{ $nqr->nminstok }}</td>
-                                <td>{{ $nqr->csatuan }}</td>
+                                <td>{{ $nqr->satuan?->nama ?? '-' }}</td>
                                 <td>{{ $nqr->ccatatan }}</td>
                             </tr>
                         @endforeach
@@ -142,11 +243,44 @@
 
     </div>
 
+    {{-- ================= MODAL SATUAN ================= --}}
+    <div class="modal fade" id="modalSatuan">
+        <div class="modal-dialog">
+            <form method="POST" id="formSatuan">
+                @csrf
+                <input type="hidden" name="_method" id="methodSatuan" value="POST">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 id="titleSatuan">Tambah Satuan</h5>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-2">
+                            <label>Nama Satuan</label>
+                            <input type="text" name="nama" id="namaSatuan" class="form-control"
+                                placeholder="Pcs / Unit / Set" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
+                        <button class="btn btn-primary" id="btnSatuan">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     {{-- ================= MODAL KATEGORI ================= --}}
     <div class="modal fade" id="modalKategori">
         <div class="modal-dialog">
             <form method="POST" action="{{ route('asset.kategori.store') }}">
                 @csrf
+                <input type="hidden" name="_method" id="methodKategori" value="POST">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5>Tambah Kategori</h5>
@@ -162,7 +296,9 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
                         <button class="btn btn-primary">Simpan</button>
                     </div>
                 </div>
@@ -173,12 +309,15 @@
     {{-- ================= MODAL SUB KATEGORI ================= --}}
     <div class="modal fade" id="modalSubKategori">
         <div class="modal-dialog">
-            <form method="POST" action="{{ route('asset.subkategori.store') }}">
+            <form method="POST" id="formSubKategori" action="{{ route('asset.subkategori.store') }}">
                 @csrf
+                <input type="hidden" name="_method" id="methodSubKategori" value="POST">
+
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5>Tambah Sub Kategori</h5>
+                        <h5 id="titleSubKategori">Tambah Sub Kategori</h5>
                     </div>
+
                     <div class="modal-body">
                         <div class="mb-2">
                             <label>Kategori</label>
@@ -188,14 +327,17 @@
                                 @endforeach
                             </select>
                         </div>
+
                         <div class="mb-2">
                             <label>Kode</label>
                             <input type="text" name="ckode" class="form-control" required>
                         </div>
+
                         <div class="mb-2">
                             <label>Nama</label>
                             <input type="text" name="cnama" class="form-control" required>
                         </div>
+
                         <div class="mb-2">
                             <label>Jenis Asset</label>
                             <select name="fqr" class="form-control">
@@ -204,14 +346,18 @@
                             </select>
                         </div>
                     </div>
+
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
                         <button class="btn btn-success">Simpan</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
+
 
     {{-- ================= MODAL ASSET ================= --}}
     <div class="modal fade" id="modalAsset">
@@ -222,11 +368,12 @@
                     <div class="modal-header">
                         <h5>Tambah Asset</h5>
                     </div>
+
                     <div class="modal-body">
 
                         {{-- DEPARTMENT --}}
                         <div class="mb-2">
-                            <label>Lokasi / Department</label>
+                            <label>Lokasi</label>
                             <select name="niddept" class="form-control" required>
                                 <option value="">-- Pilih Lokasi --</option>
                                 @foreach ($departments as $dept)
@@ -264,6 +411,41 @@
                             <input type="text" id="jenisAsset" class="form-control" readonly>
                         </div>
 
+                        {{-- QR FIELD --}}
+                        <div id="fieldQr" style="display:none">
+                            <div class="mb-2">
+                                <label>Tanggal Beli</label>
+                                <input type="date" name="dbeli" class="form-control">
+                            </div>
+                            <div class="mb-2">
+                                <label>Harga Beli</label>
+                                <input type="number" name="nbeli" class="form-control" min="0">
+                            </div>
+                        </div>
+
+                        {{-- NON QR FIELD --}}
+                        <div id="fieldNonQr" style="display:none">
+                            <div class="mb-2">
+                                <label>Qty</label>
+                                <input type="number" name="nqty" class="form-control" min="1">
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Min Stok</label>
+                                <input type="number" name="nminstok" class="form-control" min="0">
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Satuan</label>
+                                <select name="msatuan_id" class="form-control">
+                                    <option value="">-- Pilih Satuan --</option>
+                                    @foreach ($satuan as $s)
+                                        <option value="{{ $s->id }}">{{ $s->nama }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
                         {{-- CATATAN --}}
                         <div class="mb-2">
                             <label>Catatan</label>
@@ -271,8 +453,11 @@
                         </div>
 
                     </div>
+
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
                         <button class="btn btn-warning">Simpan</button>
                     </div>
                 </div>
@@ -280,28 +465,9 @@
         </div>
     </div>
 
-    {{-- ================= JS ================= --}}
     <script>
-        const kategori = document.getElementById('filterKategori');
-        const subkat = document.getElementById('filterSubKategori');
-        const jenis = document.getElementById('jenisAsset');
-
-        function filterSub() {
-            const kat = kategori.value;
-            [...subkat.options].forEach(opt => {
-                opt.style.display = opt.dataset.kat == kat ? 'block' : 'none';
-            });
-            subkat.selectedIndex = [...subkat.options].findIndex(o => o.style.display === 'block');
-            setJenis();
-        }
-
-        function setJenis() {
-            const fqr = subkat.options[subkat.selectedIndex].dataset.fqr;
-            jenis.value = fqr == 1 ? 'QR' : 'Non QR';
-        }
-
-        kategori.addEventListener('change', filterSub);
-        subkat.addEventListener('change', setJenis);
-        filterSub();
+        window.routeMsatuanStore = "{{ route('msatuan.store') }}";
     </script>
+
+    <script src="{{ asset('js/asset.js') }}"></script>
 @endsection

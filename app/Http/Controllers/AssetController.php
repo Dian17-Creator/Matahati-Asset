@@ -11,6 +11,7 @@ use App\Models\MassetSubKat;
 use App\Models\MassetQr;
 use App\Models\MassetNoQr;
 use App\Models\Mdepartment;
+use App\Models\Msatuan;
 
 class AssetController extends Controller
 {
@@ -22,9 +23,14 @@ class AssetController extends Controller
         return view('Asset.index', [
             'kategori'    => MassetKat::all(),
             'subkategori' => MassetSubKat::with('kategori')->get(),
-            'departments' => Mdepartment::all(), // ⬅️ untuk dropdown lokasi
+            'departments' => Mdepartment::all(),
+            'satuan'      => Msatuan::orderBy('nama')->get(), // ✅ TAMBAHAN
             'assetQr'     => MassetQr::with('subKategori.kategori', 'department')->get(),
-            'assetNoQr'   => MassetNoQr::with('subKategori.kategori', 'department')->get(),
+            'assetNoQr'   => MassetNoQr::with(
+                'subKategori.kategori',
+                'department',
+                'satuan' // ✅ eager load
+            )->get(),
         ]);
     }
 
@@ -35,9 +41,19 @@ class AssetController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nidsubkat' => 'required|exists:masset_subkat,nid',
-            'niddept'   => 'required|exists:mdepartment,nid',
-            'ccatatan'  => 'nullable|string',
+            'nidsubkat'  => 'required|exists:masset_subkat,nid',
+            'niddept'    => 'required|exists:mdepartment,nid',
+
+            // NON QR
+            'nqty'       => 'nullable|integer|min:1',
+            'nminstok'   => 'nullable|integer|min:0',
+            'msatuan_id' => 'nullable|exists:msatuan,id',
+
+            // QR
+            'dbeli'      => 'nullable|date',
+            'nbeli'      => 'nullable|integer|min:0',
+
+            'ccatatan'   => 'nullable|string',
         ]);
 
         AssetService::store($validated);
@@ -89,4 +105,70 @@ class AssetController extends Controller
         return redirect()->route('asset.index')
             ->with('success', 'Sub Kategori berhasil ditambahkan');
     }
+
+    public function updateKategori(Request $request, $id)
+    {
+        $request->validate([
+            'ckode' => 'required|string|max:50|unique:masset_kat,ckode,' . $id . ',nid',
+            'cnama' => 'required|string|max:100',
+        ]);
+
+        MassetKat::where('nid', $id)->update([
+            'ckode' => $request->ckode,
+            'cnama' => $request->cnama,
+        ]);
+
+        return redirect()->route('asset.index')
+            ->with('success', 'Kategori berhasil diupdate');
+    }
+
+    public function deleteKategori($id)
+    {
+        // optional safety check
+        if (MassetSubKat::where('nidkat', $id)->exists()) {
+            return back()->with('error', 'Kategori masih memiliki Sub Kategori');
+        }
+
+        MassetKat::where('nid', $id)->delete();
+
+        return redirect()->route('asset.index')
+            ->with('success', 'Kategori berhasil dihapus');
+    }
+
+    public function updateSubKategori(Request $request, $id)
+    {
+        $request->validate([
+            'nidkat' => 'required|exists:masset_kat,nid',
+            'ckode'  => 'required|string|max:50',
+            'cnama'  => 'required|string|max:100',
+            'fqr'    => 'required|boolean',
+        ]);
+
+        MassetSubKat::where('nid', $id)->update([
+            'nidkat' => $request->nidkat,
+            'ckode'  => $request->ckode,
+            'cnama'  => $request->cnama,
+            'fqr'    => $request->fqr,
+        ]);
+
+        return redirect()->route('asset.index')
+            ->with('success', 'Sub Kategori berhasil diupdate');
+    }
+
+    public function deleteSubKategori($id)
+    {
+        // optional safety check
+        if (
+            MassetQr::where('nidsubkat', $id)->exists() ||
+            MassetNoQr::where('nidsubkat', $id)->exists()
+        ) {
+            return back()->with('error', 'Sub kategori masih digunakan asset');
+        }
+
+        MassetSubKat::where('nid', $id)->delete();
+
+        return redirect()->route('asset.index')
+            ->with('success', 'Sub Kategori berhasil dihapus');
+    }
+
 }
