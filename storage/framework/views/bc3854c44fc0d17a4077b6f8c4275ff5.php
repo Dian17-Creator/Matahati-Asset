@@ -88,15 +88,15 @@
     <div class="login-card">
         <h3>LOGIN</h3>
 
-        
-        <?php if($errors->any()): ?>
+
+        <?php if ($errors->any()): ?>
             <div class="alert alert-danger">
                 <?php echo e($errors->first()); ?>
 
             </div>
         <?php endif; ?>
 
-        
+
         <form action="<?php echo e(url('/login')); ?>" method="POST">
             <?php echo csrf_field(); ?>
             <div class="mb-3 text-start">
@@ -114,7 +114,7 @@
         </form>
 
         <div class="footer mt-4">
-            <small>© <?php echo e(date('Y')); ?> Matahati Backoffice</small>
+            <small>© <?php echo e(date('Y')); ?> Matahati Asset</small>
         </div>
     </div>
 
