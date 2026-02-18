@@ -1,9 +1,9 @@
-{{-- ================= MODAL SATUAN ================= --}}
 <div class="modal fade" id="modalSatuan">
     <div class="modal-dialog">
-        <form method="POST" id="formSatuan">
+        <form method="POST" id="formSatuan" action="{{ route('msatuan.store') }}">
             @csrf
             <input type="hidden" name="_method" id="methodSatuan" value="POST">
+
 
             <div class="modal-content">
                 <div class="modal-header">
@@ -22,15 +22,12 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Batal
                     </button>
-                    <button class="btn btn-primary" id="btnSatuan">Simpan</button>
+
+                    <button type="submit" class="btn btn-primary" id="btnSatuan">
+                        Simpan
+                    </button>
                 </div>
             </div>
         </form>
     </div>
 </div>
-
-<script>
-    window.routeMsatuanStore = "{{ route('msatuan.store') }}";
-</script>
-
-<script src="{{ asset('js/asset.js') }}"></script>
