@@ -51,7 +51,7 @@
                     <div class="mb-2">
                         <label>Satuan</label>
                         <select name="msatuan_id" class="form-control">
-                            @foreach ($satuan as $s)
+                            @foreach ($SatuanAll as $s)
                                 <option value="{{ $s->id }}">{{ $s->nama }}</option>
                             @endforeach
                         </select>

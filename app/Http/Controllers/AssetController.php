@@ -26,12 +26,15 @@ class AssetController extends Controller
         $kategori = MassetKat::orderBy('ckode')
             ->paginate(5, ['*'], 'kategori_page');
 
+        // ✅ FULL DATA UNTUK DROPDOWN
+        $kategoriAll = MassetKat::orderBy('ckode')->get();
+        $SatuanAll = Msatuan::orderBy('nama')->get();
+
         // =========================
         // HANDLE AJAX REQUEST
         // =========================
         if ($request->ajax()) {
 
-            // AJAX pagination MASTER SATUAN
             if ($request->has('satuan_page')) {
                 return view(
                     'Asset.components.partials.satuan_table',
@@ -39,7 +42,6 @@ class AssetController extends Controller
                 )->render();
             }
 
-            // AJAX pagination MASTER KATEGORI
             if ($request->has('kategori_page')) {
                 return view(
                     'Asset.components.partials.kategori_table',
@@ -52,11 +54,11 @@ class AssetController extends Controller
         // LOAD NORMAL (FIRST LOAD)
         // =========================
         return view('Asset.index', [
+            'satuan'       => $satuan,
+            'kategori'     => $kategori,     // ⬅️ tabel
+            'kategoriAll'  => $kategoriAll,  // ⬅️ dropdown
+            'SatuanAll'    => $SatuanAll,    // ⬅️ dropdown
 
-            'satuan'      => $satuan,
-            'kategori'    => $kategori,
-
-            // MASTER BESAR (FULL LOAD)
             'subkategori' => MassetSubKat::with('kategori')->get(),
             'departments' => Mdepartment::all(),
 
@@ -72,6 +74,7 @@ class AssetController extends Controller
             )->get(),
         ]);
     }
+
 
 
     /**
