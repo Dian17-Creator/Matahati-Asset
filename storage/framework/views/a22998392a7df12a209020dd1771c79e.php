@@ -189,6 +189,13 @@
     </div>
 
     <?php echo $__env->yieldPushContent('scripts'); ?>
+
+    <!-- JQUERY (WAJIB, SEBELUM asset.js) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- FILE JS KAMU -->
+    <script src="<?php echo e(asset('js/asset.js')); ?>"></script>
+
 </body>
 
 </html>

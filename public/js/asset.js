@@ -104,6 +104,14 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     window.openEditSubKategori = (id, nidkat, kode, nama, fqr) => {
+        // debug: log incoming values to help diagnose empty select
+        console.debug("openEditSubKategori called", {
+            id,
+            nidkat,
+            kode,
+            nama,
+            fqr,
+        });
         const form = document.getElementById("formSubKategori");
 
         form.reset();
@@ -117,7 +125,42 @@ document.addEventListener("DOMContentLoaded", () => {
         form.querySelector('[name="cnama"]').value = nama;
 
         const selectFqr = form.querySelector('[name="fqr"]');
-        selectFqr.value = String(fqr);
+        if (selectFqr) {
+            console.debug(
+                "selectFqr options before set",
+                [...selectFqr.options].map((o) => ({
+                    value: o.value,
+                    text: o.text,
+                    selected: o.selected,
+                })),
+            );
+            const val = String(fqr);
+            let matched = false;
+            [...selectFqr.options].forEach((opt) => {
+                if (opt.value === val) {
+                    opt.selected = true;
+                    matched = true;
+                }
+            });
+            // ensure selectedIndex reflects the chosen option (some browsers/skins need this)
+            const idx = [...selectFqr.options].findIndex(
+                (o) => o.value === val,
+            );
+            if (idx >= 0) selectFqr.selectedIndex = idx;
+            // trigger change so any UI wrappers update
+            try {
+                selectFqr.dispatchEvent(new Event("change"));
+            } catch (e) {}
+            console.debug("selectFqr after set attempt", {
+                val,
+                matched,
+                current: selectFqr.value,
+            });
+            if (!matched) {
+                // fallback to direct assignment if no option matched
+                selectFqr.value = val;
+            }
+        }
     };
 
     const modalSub = document.getElementById("modalSubKategori");
@@ -132,4 +175,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Tambah Sub Kategori";
         });
     }
+
+    // AJAX pagination - Master Satuan
+    $(document).on("click", "#satuan-wrapper .pagination a", function (e) {
+        e.preventDefault();
+
+        let url = $(this).attr("href");
+
+        $.get(url, function (data) {
+            $("#satuan-wrapper").html(data);
+        });
+    });
+
+    // AJAX pagination - Master Kategori
+    $(document).on("click", "#kategori-wrapper .pagination a", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        let url = $(this).attr("href");
+
+        $.get(url, function (data) {
+            $("#kategori-wrapper").html(data);
+        });
+    });
 });
