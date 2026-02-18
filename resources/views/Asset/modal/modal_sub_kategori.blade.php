@@ -14,7 +14,7 @@
                     <div class="mb-2">
                         <label>Kategori</label>
                         <select name="nidkat" class="form-control" required>
-                            @foreach ($kategori as $kat)
+                            @foreach ($kategoriAll as $kat)
                                 <option value="{{ $kat->nid }}">{{ $kat->cnama }}</option>
                             @endforeach
                         </select>
