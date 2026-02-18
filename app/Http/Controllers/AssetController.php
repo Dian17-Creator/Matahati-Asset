@@ -15,24 +15,64 @@ use App\Models\Msatuan;
 
 class AssetController extends Controller
 {
-    /**
-     * Halaman Master Asset
-     */
-    public function index()
+    public function index(Request $request)
     {
+        // =========================
+        // MASTER KECIL (PAGINATION)
+        // =========================
+        $satuan = Msatuan::orderBy('nama')
+            ->paginate(5, ['*'], 'satuan_page');
+
+        $kategori = MassetKat::orderBy('ckode')
+            ->paginate(5, ['*'], 'kategori_page');
+
+        // =========================
+        // HANDLE AJAX REQUEST
+        // =========================
+        if ($request->ajax()) {
+
+            // AJAX pagination MASTER SATUAN
+            if ($request->has('satuan_page')) {
+                return view(
+                    'Asset.components.partials.satuan_table',
+                    compact('satuan')
+                )->render();
+            }
+
+            // AJAX pagination MASTER KATEGORI
+            if ($request->has('kategori_page')) {
+                return view(
+                    'Asset.components.partials.kategori_table',
+                    compact('kategori')
+                )->render();
+            }
+        }
+
+        // =========================
+        // LOAD NORMAL (FIRST LOAD)
+        // =========================
         return view('Asset.index', [
-            'kategori'    => MassetKat::all(),
+
+            'satuan'      => $satuan,
+            'kategori'    => $kategori,
+
+            // MASTER BESAR (FULL LOAD)
             'subkategori' => MassetSubKat::with('kategori')->get(),
             'departments' => Mdepartment::all(),
-            'satuan'      => Msatuan::orderBy('nama')->get(), // ✅ TAMBAHAN
-            'assetQr'     => MassetQr::with('subKategori.kategori', 'department')->get(),
-            'assetNoQr'   => MassetNoQr::with(
+
+            'assetQr' => MassetQr::with(
+                'subKategori.kategori',
+                'department'
+            )->get(),
+
+            'assetNoQr' => MassetNoQr::with(
                 'subKategori.kategori',
                 'department',
-                'satuan' // ✅ eager load
+                'satuan'
             )->get(),
         ]);
     }
+
 
     /**
      * Simpan asset (QR / Non QR)

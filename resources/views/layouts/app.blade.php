@@ -189,6 +189,13 @@
     </div>
 
     @stack('scripts')
+
+    <!-- JQUERY (WAJIB, SEBELUM asset.js) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- FILE JS KAMU -->
+    <script src="{{ asset('js/asset.js') }}"></script>
+
 </body>
 
 </html>
