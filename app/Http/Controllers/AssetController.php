@@ -12,6 +12,7 @@ use App\Models\MassetQr;
 use App\Models\MassetNoQr;
 use App\Models\Mdepartment;
 use App\Models\Msatuan;
+use App\Models\MassetTrans;
 
 class AssetController extends Controller
 {
@@ -54,24 +55,21 @@ class AssetController extends Controller
         // LOAD NORMAL (FIRST LOAD)
         // =========================
         return view('Asset.index', [
+            // yang sudah ada
             'satuan'       => $satuan,
-            'kategori'     => $kategori,     // ⬅️ tabel
-            'kategoriAll'  => $kategoriAll,  // ⬅️ dropdown
-            'SatuanAll'    => $SatuanAll,    // ⬅️ dropdown
+            'kategori'     => $kategori,
+            'kategoriAll'  => $kategoriAll,
+            'SatuanAll'    => $SatuanAll,
+            'subkategori'  => MassetSubKat::with('kategori')->get(),
+            'departments'  => Mdepartment::all(),
+            'assetQr'      => MassetQr::with('subKategori.kategori', 'department')->get(),
+            'assetNoQr'    => MassetNoQr::with('subKategori.kategori', 'department', 'satuan')->get(),
 
-            'subkategori' => MassetSubKat::with('kategori')->get(),
-            'departments' => Mdepartment::all(),
-
-            'assetQr' => MassetQr::with(
-                'subKategori.kategori',
-                'department'
-            )->get(),
-
-            'assetNoQr' => MassetNoQr::with(
+            // 🔥 INI YANG KURANG
+            'transaksi' => MassetTrans::with([
                 'subKategori.kategori',
                 'department',
-                'satuan'
-            )->get(),
+            ])->orderByDesc('nid')->get(),
         ]);
     }
 

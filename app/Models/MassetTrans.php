@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class MassetTrans extends Model
 {
@@ -14,7 +14,6 @@ class MassetTrans extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nid',
         'ngrpid',
         'ckode',
         'cnama',
@@ -26,4 +25,16 @@ class MassetTrans extends Model
         'ccatatan',
         'dreffoto',
     ];
+
+    // 🔗 Sub Kategori
+    public function subKategori()
+    {
+        return $this->belongsTo(MassetSubKat::class, 'ngrpid', 'nid');
+    }
+
+    // 🔗 Department / Lokasi
+    public function department()
+    {
+        return $this->belongsTo(Mdepartment::class, 'nlokasi', 'nid');
+    }
 }

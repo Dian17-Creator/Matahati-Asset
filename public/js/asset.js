@@ -89,9 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* =========================
-     * MODAL KATEGORI (TIDAK DIUBAH)
-     * ========================= */
+    // MODAL KATEGORI (TIDAK DIUBAH)
     window.openEditKategori = (id, kode, nama) => {
         const modal = document.getElementById("modalKategori");
         const form = modal.querySelector("form");
@@ -226,5 +224,42 @@ document.addEventListener("DOMContentLoaded", () => {
         $.get(url, function (data) {
             $("#kategori-wrapper").html(data);
         });
+    });
+
+    subkatSelect.addEventListener("change", async () => {
+        const selected = subkatSelect.options[subkatSelect.selectedIndex];
+        if (!selected) return;
+
+        const isQr = selected.dataset.fqr === "1";
+
+        if (isQr) {
+            kodeAsset.readOnly = true;
+            kodeHint.innerText = "Kode dibuat otomatis (QR)";
+            kodeAsset.value = "Loading...";
+
+            try {
+                const res = await fetch(
+                    `${window.routeGenerateKode}?ngrpid=${selected.value}`,
+                    {
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest",
+                        },
+                    },
+                );
+
+                if (!res.ok) throw new Error("HTTP error");
+
+                const data = await res.json();
+                kodeAsset.value = data.kode;
+            } catch (err) {
+                console.error(err);
+                kodeAsset.value = "";
+                kodeHint.innerText = "Gagal generate kode";
+            }
+        } else {
+            kodeAsset.readOnly = false;
+            kodeAsset.value = "";
+            kodeHint.innerText = "Isi kode manual (Non-QR)";
+        }
     });
 });
