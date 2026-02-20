@@ -78,17 +78,46 @@ document.addEventListener("DOMContentLoaded", () => {
         btnSatuan.innerText = "Update";
     };
 
+    const modalSatuan = document.getElementById("modalSatuan");
+    if (modalSatuan) {
+        modalSatuan.addEventListener("hidden.bs.modal", () => {
+            formSatuan.reset();
+            formSatuan.action = window.routeMsatuanStore;
+            methodSatuan.value = "POST";
+            titleSatuan.innerText = "Tambah Satuan";
+            btnSatuan.innerText = "Simpan";
+        });
+    }
+
     /* =========================
      * MODAL KATEGORI (TIDAK DIUBAH)
      * ========================= */
     window.openEditKategori = (id, kode, nama) => {
-        const form = document.querySelector("#modalKategori form");
+        const modal = document.getElementById("modalKategori");
+        const form = modal.querySelector("form");
+        const titleKategori = modal.querySelector("#titleKategori");
 
         form.action = `/asset/kategori/${id}`;
         document.getElementById("methodKategori").value = "PUT";
+
+        titleKategori.innerText = "Edit Kategori";
+
         form.querySelector('[name="ckode"]').value = kode;
         form.querySelector('[name="cnama"]').value = nama;
     };
+
+    const modalKategori = document.getElementById("modalKategori");
+    if (modalKategori) {
+        modalKategori.addEventListener("hidden.bs.modal", () => {
+            const form = modalKategori.querySelector("form");
+            form.reset();
+
+            form.action = "/asset/kategori";
+            document.getElementById("methodKategori").value = "POST";
+            modalKategori.querySelector("#titleKategori").innerText =
+                "Tambah Kategori";
+        });
+    }
 
     /* =========================
      * MODAL SUB KATEGORI (FIX)

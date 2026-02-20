@@ -8,7 +8,7 @@
             <div class="modal-content">
 
                 <div class="modal-header" style="background-color: #B63352; color: white;">
-                    <h5>Tambah Kategori</h5>
+                    <h5 id="titleKategori">Tambah Kategori</h5>
                 </div>
 
                 <div class="modal-body">
