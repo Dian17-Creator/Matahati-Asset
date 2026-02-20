@@ -7,7 +7,6 @@
             <h4 class="mb-0">DASHBOARD ASSET</h4>
         </div>
 
-
         <div class="row">
 
             {{-- MASTER SATUAN --}}
@@ -22,7 +21,6 @@
 
         </div>
 
-
         {{-- ================= SUB KATEGORI ================= --}}
 
         @include('Asset.components.master_sub_kategori')
@@ -30,6 +28,8 @@
         @include('Asset.components.master_asset_qr')
 
         @include('Asset.components.master_asset_nonqr')
+
+        @include('Asset.components.master_asset_transaksi')
 
     </div>
 
@@ -47,6 +47,10 @@
 
     <script>
         window.routeMsatuanStore = "{{ route('msatuan.store') }}";
+    </script>
+
+    <script>
+        window.routeGenerateKode = "{{ route('asset.trans.generate') }}";
     </script>
 
     <script src="{{ asset('js/asset.js') }}"></script>

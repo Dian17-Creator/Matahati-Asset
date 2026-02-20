@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\MsatuanController;
+use App\Http\Controllers\MassetTransController;
 
 // AUTH
 Route::get('/', fn () => redirect('/login'));
@@ -45,4 +46,13 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', [MsatuanController::class, 'destroy'])->name('destroy');
     });
 
+    // MASSETTRANS
+    Route::get('/asset/transaksi', [MassetTransController::class, 'index'])
+        ->name('asset.trans.index');
+    Route::post('/asset/transaksi', [MassetTransController::class, 'store'])
+        ->name('asset.trans.store');
+    Route::get(
+        '/asset/transaksi/generate-kode',
+        [MassetTransController::class, 'generateQrCode']
+    )->name('asset.trans.generate');
 });
