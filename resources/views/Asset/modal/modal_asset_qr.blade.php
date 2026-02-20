@@ -6,7 +6,7 @@
             <input type="hidden" name="jenis_asset" value="NONQR">
 
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="background-color: #B63352; color: white;">
                     <h5>Tambah Asset Non-QR</h5>
                 </div>
 
@@ -67,7 +67,7 @@
 
                 <div class="modal-footer">
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button class="btn btn-warning">Simpan</button>
+                    <button class="btn btn-success">Simpan</button>
                 </div>
             </div>
         </form>

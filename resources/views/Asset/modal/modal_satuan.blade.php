@@ -6,7 +6,7 @@
 
 
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="background-color: #B63352; color: white;">
                     <h5 id="titleSatuan">Tambah Satuan</h5>
                 </div>
 
@@ -23,7 +23,7 @@
                         Batal
                     </button>
 
-                    <button type="submit" class="btn btn-primary" id="btnSatuan">
+                    <button type="submit" class="btn btn-success" id="btnSatuan">
                         Simpan
                     </button>
                 </div>
