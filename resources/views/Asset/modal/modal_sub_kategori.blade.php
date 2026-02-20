@@ -6,7 +6,7 @@
             <input type="hidden" name="_method" id="methodSubKategori" value="POST">
 
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="background-color: #B63352; color: white;">
                     <h5 id="titleSubKategori">Tambah Sub Kategori</h5>
                 </div>
 
