@@ -54,4 +54,6 @@
     </script>
 
     <script src="{{ asset('js/asset.js') }}"></script>
+
+    <link rel="stylesheet" href="{{ asset('css/asset.css') }}">
 @endsection

@@ -13,63 +13,37 @@
                     {{-- LOKASI --}}
                     <div class="mb-2">
                         <label>Lokasi</label>
-                        <select name="nlokasi" class="form-control" required>
+                        <select name="nlokasi" id="lokasiSelect" class="form-control" required>
                             <option value="">-- Pilih Lokasi --</option>
                             @foreach ($departments as $dept)
-                                <option value="{{ $dept->nid }}">{{ $dept->cname }}</option>
+                                <option value="{{ $dept->nid }}">
+                                    {{ $dept->cname }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
 
-                    {{-- KATEGORI & SUB KATEGORI --}}
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label>Kategori</label>
-                            <select id="katSelect" class="form-control" required>
-                                <option value="">-- Pilih Kategori --</option>
-                                @foreach ($kategoriAll as $kat)
-                                    <option value="{{ $kat->nid }}">{{ $kat->cnama }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label>Sub Kategori</label>
-                            <select name="ngrpid" id="subkatSelect" class="form-control" required>
-                                <option value="">-- Pilih Sub Kategori --</option>
-                                @foreach ($subkategori as $sub)
-                                    <option value="{{ $sub->nid }}" data-kat="{{ $sub->nidkat }}"
-                                        data-fqr="{{ $sub->fqr }}">
-                                        {{ $sub->kategori->cnama }} - {{ $sub->cnama }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    {{-- KODE ASSET --}}
+                    {{-- KODE ASSET (DROPDOWN) --}}
                     <div class="mb-2">
                         <label>Kode Asset</label>
-                        <input type="text" name="ckode" id="kodeAsset" class="form-control" required>
-                        <small class="text-muted" id="kodeHint"></small>
+                        <select name="ckode_asset" id="assetSelect" class="form-control" required>
+                            <option value="">-- Pilih Kode Asset --</option>
+                            @foreach ($assetDropdown as $a)
+                                <option value="{{ $a['kode'] }}" data-lokasi="{{ $a['lokasi'] }}">
+                                    [{{ $a['jenis'] }}] {{ $a['kode'] }} —
+                                    {{ $a['nama'] }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <div class="row">
-                        {{-- NAMA --}}
-                        <div class="col-md-6 mb-3">
-                            <label>Nama Asset</label>
-                            <input type="text" name="cnama" class="form-control">
-                        </div>
-
-                        {{-- MERK --}}
-                        <div class="col-md-6 mb-3">
-                            <label>Merk</label>
-                            <input type="text" name="cmerk" class="form-control">
-                        </div>
-
+                    {{-- MERK --}}
+                    <div class="mb-2">
+                        <label>Merk</label>
+                        <input type="text" name="cmerk" class="form-control">
                     </div>
 
-
+                    {{-- TANGGAL --}}
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Tanggal Beli</label>

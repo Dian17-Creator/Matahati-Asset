@@ -226,40 +226,42 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    subkatSelect.addEventListener("change", async () => {
-        const selected = subkatSelect.options[subkatSelect.selectedIndex];
-        if (!selected) return;
+    // AJAX pagination - Master Sub Kategori
+    $(document).on("click", "#subkategori-wrapper .pagination a", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-        const isQr = selected.dataset.fqr === "1";
+        let url = $(this).attr("href");
 
-        if (isQr) {
-            kodeAsset.readOnly = true;
-            kodeHint.innerText = "Kode dibuat otomatis (QR)";
-            kodeAsset.value = "Loading...";
+        $.get(url, function (data) {
+            $("#subkategori-wrapper").html(data);
+        });
+    });
 
-            try {
-                const res = await fetch(
-                    `${window.routeGenerateKode}?ngrpid=${selected.value}`,
-                    {
-                        headers: {
-                            "X-Requested-With": "XMLHttpRequest",
-                        },
-                    },
-                );
+    // AJAX pagination - Asset QR
+    $(document).on("click", "#asset-qr-wrapper .pagination a", function (e) {
+        e.preventDefault();
+        $.get($(this).attr("href"), function (data) {
+            $("#asset-qr-wrapper").html(data);
+        });
+    });
 
-                if (!res.ok) throw new Error("HTTP error");
+    // AJAX pagination - Asset Non QR
+    $(document).on("click", "#asset-nonqr-wrapper .pagination a", function (e) {
+        e.preventDefault();
+        $.get($(this).attr("href"), function (data) {
+            $("#asset-nonqr-wrapper").html(data);
+        });
+    });
 
-                const data = await res.json();
-                kodeAsset.value = data.kode;
-            } catch (err) {
-                console.error(err);
-                kodeAsset.value = "";
-                kodeHint.innerText = "Gagal generate kode";
-            }
-        } else {
-            kodeAsset.readOnly = false;
-            kodeAsset.value = "";
-            kodeHint.innerText = "Isi kode manual (Non-QR)";
-        }
+    // AJAX pagination - Transaksi Asset
+    $(document).on("click", "#transaksi-wrapper .pagination a", function (e) {
+        e.preventDefault();
+
+        let url = $(this).attr("href");
+
+        $.get(url, function (data) {
+            $("#transaksi-wrapper").html(data);
+        });
     });
 });

@@ -17,9 +17,11 @@ class MassetNoQr extends Model
     protected $fillable = [
         'nidsubkat',
         'niddept',
+        'ckode',
+        'cnama',
         'nqty',
         'nminstok',
-        'msatuan_id',   // ✅ WAJIB ADA
+        'msatuan_id',
         'dtrans',
         'ccatatan',
     ];

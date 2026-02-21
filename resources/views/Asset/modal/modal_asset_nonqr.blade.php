@@ -27,7 +27,7 @@
                     <div class="mb-2">
                         <label>Sub Kategori (QR)</label>
                         <select name="nidsubkat" class="form-control" required>
-                            @foreach ($subkategori->where('fqr', 1) as $sub)
+                            @foreach ($subkategoriAll->where('fqr', 1) as $sub)
                                 <option value="{{ $sub->nid }}">
                                     {{ $sub->kategori->cnama }} - {{ $sub->cnama }}
                                 </option>
@@ -44,7 +44,7 @@
                     {{-- HARGA BELI --}}
                     <div class="mb-2">
                         <label>Harga Beli</label>
-                        <input type="number" name="nbeli" class="form-control" min="0">
+                        <input type="text" name="nbeli" class="form-control" min="0">
                     </div>
 
                     {{-- CATATAN --}}
