@@ -1,0 +1,33 @@
+/* ===== Pagination Modern ===== */
+.pagination {
+    gap: 6px;
+}
+
+.pagination .page-link {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    color: #b63352;
+    font-weight: 500;
+    padding: 6px 14px;
+    transition: all 0.2s ease;
+}
+
+.pagination .page-link:hover {
+    background-color: #b63352;
+    color: #fff;
+    border-color: #b63352;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #198754; /* hijau */
+    border-color: #198754;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}

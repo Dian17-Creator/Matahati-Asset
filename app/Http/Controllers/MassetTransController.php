@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\MassetTrans;
+use App\Models\MassetQr;
+use App\Models\MassetNoQr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,9 +21,7 @@ class MassetTransController extends Controller
             'transaksi' => MassetTrans::with([
                 'subKategori.kategori',
                 'department',
-            ])
-            ->orderByDesc('nid')
-            ->get(),
+            ])->orderByDesc('nid')->get(),
         ]);
     }
 
@@ -32,90 +32,78 @@ class MassetTransController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'ngrpid'       => 'required|exists:masset_subkat,nid',
-            'ckode'        => 'required|string|max:50',
-            'cnama'        => 'nullable|string|max:100',
-            'nlokasi'      => 'required|exists:mdepartment,nid',
-            'dbeli'        => 'required|date',
-            'cmerk'        => 'nullable|string|max:50',
-            'dgaransi'     => 'nullable|date',
-            'nhrgbeli'     => 'nullable|numeric',
-            'ccatatan'     => 'nullable|string|max:100',
+        $validated = $request->validate([
+            'ckode_asset' => 'required|string',   // dari dropdown
+            'dbeli'       => 'required|date',
+            'cmerk'       => 'nullable|string|max:50',
+            'dgaransi'    => 'nullable|date',
+            'nhrgbeli'    => 'nullable|numeric',
+            'ccatatan'    => 'nullable|string|max:100',
 
             // FOTO
-            'foto'         => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($validated, $request) {
 
-            /** ======================
+            /**
+             * ======================
+             * CARI ASSET (QR / NON QR)
+             * ======================
+             */
+            $qr = MassetQr::with(['subKategori', 'department'])
+                ->where('cqr', $validated['ckode_asset'])
+                ->first();
+
+            $nonQr = null;
+
+            if (! $qr) {
+                $nonQr = MassetNoQr::with(['subKategori', 'department'])
+                    ->where('ckode', $validated['ckode_asset'])
+                    ->first();
+            }
+
+            if (! $qr && ! $nonQr) {
+                throw new \Exception('Kode asset tidak valid');
+            }
+
+            $asset = $qr ?? $nonQr;
+
+            /**
+             * ======================
              * HANDLE UPLOAD FOTO
-             * ====================== */
+             * ======================
+             */
             $namaFoto = null;
 
             if ($request->hasFile('foto')) {
                 $file = $request->file('foto');
-
                 $namaFoto = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-
-                // SIMPAN KE: public/uploads/asset
                 $file->move(public_path('uploads/asset'), $namaFoto);
             }
 
-            /** ======================
+            /**
+             * ======================
              * SIMPAN TRANSAKSI
-             * ====================== */
+             * ======================
+             */
             MassetTrans::create([
-                'ngrpid'      => $request->ngrpid,
-                'ckode'       => $request->ckode,
-                'cnama'       => $request->cnama,
-                'nlokasi'     => $request->nlokasi,
-                'dbeli'       => $request->dbeli,
-                'cmerk'       => $request->cmerk,
-                'dgaransi'    => $request->dgaransi,
-                'nhrgbeli'    => $request->nhrgbeli,
-                'ccatatan'    => $request->ccatatan,
-                'dreffoto'    => $namaFoto,
+                'ngrpid'   => $asset->nidsubkat,
+                'ckode'    => $validated['ckode_asset'],
+                'cnama'    => $asset->cnama ?? $asset->subKategori->cnama,
+                'nlokasi'  => $asset->niddept,
+                'dbeli'    => $validated['dbeli'],
+                'cmerk'    => $validated['cmerk'] ?? null,
+                'dgaransi' => $validated['dgaransi'] ?? null,
+                'nhrgbeli' => $validated['nhrgbeli'] ?? null,
+                'ccatatan' => $validated['ccatatan'] ?? null,
+                'dreffoto' => $namaFoto,
+                'fqr'      => $qr ? 1 : 0, // penanda QR / Non QR
             ]);
         });
 
         return redirect()
             ->back()
             ->with('success', 'Transaksi asset berhasil disimpan');
-    }
-
-    private function shortCode($text)
-    {
-        return strtoupper(substr(preg_replace('/[^A-Z]/i', '', $text), 0, 3));
-    }
-
-    public function generateQrCode(Request $request)
-    {
-        $subkat = \App\Models\MassetSubKat::with('kategori')
-            ->where('nid', $request->ngrpid)
-            ->firstOrFail();
-
-        $katCode  = $this->shortCode($subkat->kategori->cnama);
-        $subCode  = $this->shortCode($subkat->cnama);
-
-        // cari kode terakhir
-        $last = MassetTrans::where('ngrpid', $subkat->nid)
-            ->where('ckode', 'LIKE', "$katCode-$subCode-%")
-            ->orderByDesc('ckode')
-            ->first();
-
-        $nextNumber = 1;
-
-        if ($last) {
-            $lastNum = intval(substr($last->ckode, -3));
-            $nextNumber = $lastNum + 1;
-        }
-
-        $kode = sprintf('%s-%s-%03d', $katCode, $subCode, $nextNumber);
-
-        return response()->json([
-            'kode' => $kode
-        ]);
     }
 }

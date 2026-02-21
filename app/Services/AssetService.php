@@ -6,18 +6,15 @@ use App\Models\MassetSubKat;
 use App\Models\MassetQr;
 use App\Models\MassetNoQr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
 
 class AssetService
 {
-    /**
-     * Simpan asset berdasarkan sub kategori (QR / Non QR)
-     */
     public static function store(array $data)
     {
         return DB::transaction(function () use ($data) {
 
-            $subkat = MassetSubKat::findOrFail($data['nidsubkat']);
+            $subkat = MassetSubKat::with('kategori')
+                ->findOrFail($data['nidsubkat']);
 
             /**
              * =========================
@@ -31,7 +28,10 @@ class AssetService
 
                 $nurut = ($lastUrut ?? 0) + 1;
 
-                $qrCode = 'QR-' . $subkat->nid . '-' . $nurut;
+                // ✅ FORMAT QR BARU
+                $qrCode = $subkat->kategori->ckode
+                        . '-' . $subkat->ckode
+                        . '-' . $nurut;
 
                 return MassetQr::create([
                     'nidsubkat' => $subkat->nid,
@@ -52,8 +52,6 @@ class AssetService
              * ASSET NON QR (STOK)
              * =========================
              */
-
-            // VALIDASI WAJIB
             if (empty($data['msatuan_id'])) {
                 throw new \Exception('Satuan wajib diisi untuk asset Non QR');
             }
@@ -61,6 +59,21 @@ class AssetService
             if (empty($data['nqty'])) {
                 throw new \Exception('Qty wajib diisi untuk asset Non QR');
             }
+
+            if (empty($data['kode_urut'])) {
+                throw new \Exception('Kode urut wajib diisi untuk asset Non QR');
+            }
+
+            if (empty($data['cnama'])) {
+                throw new \Exception('Nama asset wajib diisi untuk asset Non QR');
+            }
+
+            // Bentuk kode & nama (FINAL)
+            $ckode = $subkat->kategori->ckode
+                   . '-' . $subkat->ckode
+                   . '-' . $data['kode_urut'];
+
+            $cnama = $data['cnama'];
 
             $existing = MassetNoQr::where('nidsubkat', $subkat->nid)
                 ->where('niddept', $data['niddept'])
@@ -73,7 +86,7 @@ class AssetService
                     ->where('niddept', $data['niddept'])
                     ->update([
                         'nqty'       => DB::raw('nqty + ' . (int) $data['nqty']),
-                        'nminstok'   => $data['nminstok'] ?? $existing->nminstok, // ✅ FIX
+                        'nminstok'   => $data['nminstok'] ?? $existing->nminstok,
                         'msatuan_id' => $data['msatuan_id'],
                         'ccatatan'   => $data['ccatatan'] ?? $existing->ccatatan,
                         'dtrans'     => now(),
@@ -82,17 +95,17 @@ class AssetService
                 return $existing->refresh();
             }
 
-
             return MassetNoQr::create([
                 'nidsubkat'   => $subkat->nid,
-                'niddept'    => $data['niddept'],
-                'nqty'       => (int) $data['nqty'],
-                'nminstok'   => $data['nminstok'] ?? 0,
-                'msatuan_id' => $data['msatuan_id'], // ✅
-                'dtrans'     => now(),
-                'ccatatan'   => $data['ccatatan'] ?? null,
+                'niddept'     => $data['niddept'],
+                'ckode'       => $ckode,   // ✅ WAJIB
+                'cnama'       => $cnama,   // ✅ WAJIB
+                'nqty'        => (int) $data['nqty'],
+                'nminstok'    => $data['nminstok'] ?? 0,
+                'msatuan_id'  => $data['msatuan_id'],
+                'dtrans'      => now(),
+                'ccatatan'    => $data['ccatatan'] ?? null,
             ]);
         });
     }
-
 }

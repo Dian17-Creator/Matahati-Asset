@@ -27,9 +27,31 @@ class AssetController extends Controller
         $kategori = MassetKat::orderBy('ckode')
             ->paginate(5, ['*'], 'kategori_page');
 
+        $subkategori = MassetSubKat::with('kategori')
+            ->orderBy('ckode', 'asc')
+            ->paginate(5, ['*'], 'subkategori_page');
+
+        $assetQr = MassetQr::with(['subKategori.kategori', 'department'])
+            ->orderBy('cqr', 'asc')
+            ->paginate(5, ['*'], 'asset_qr_page');
+
+        $assetNoQr = MassetNoQr::with(['subKategori.kategori', 'department', 'satuan'])
+            ->orderBy('ckode', 'asc')
+            ->paginate(5, ['*'], 'asset_nonqr_page');
+
+        $transaksi = MassetTrans::with([
+                'subKategori.kategori',
+                'department',
+            ])
+            ->orderByDesc('ckode')
+            ->paginate(5, ['*'], 'transaksi_page');
+
         // ✅ FULL DATA UNTUK DROPDOWN
         $kategoriAll = MassetKat::orderBy('ckode')->get();
         $SatuanAll = Msatuan::orderBy('nama')->get();
+        $subkategoriAll = MassetSubKat::with('kategori')->orderBy('ckode')->get();
+        $AssetQrAll = MassetQr::with(['subKategori.kategori', 'department'])->orderBy('cqr')->get();
+        $AssetNoQrAll = MassetNoQr::with(['subKategori.kategori', 'department', 'satuan'])->orderBy('ckode')->get();
 
         // =========================
         // HANDLE AJAX REQUEST
@@ -49,31 +71,77 @@ class AssetController extends Controller
                     compact('kategori')
                 )->render();
             }
+
+            if ($request->has('subkategori_page')) {
+                return view(
+                    'Asset.components.partials.subkategori_table',
+                    compact('subkategori')
+                )->render();
+            }
+
+            if ($request->has('asset_qr_page')) {
+                return view(
+                    'Asset.components.partials.asset_qr_table',
+                    compact('assetQr')
+                )->render();
+            }
+
+            if ($request->has('asset_nonqr_page')) {
+                return view(
+                    'Asset.components.partials.asset_nonqr_table',
+                    compact('assetNoQr')
+                )->render();
+            }
         }
 
         // =========================
-        // LOAD NORMAL (FIRST LOAD)
+        // DROPDOWN KODE ASSET (QR + NON QR)
         // =========================
+        $assetQrList = MassetQr::with(['subKategori', 'department'])
+            ->get()
+            ->map(function ($qr) {
+                return [
+                    'kode'   => $qr->cqr,
+                    'nama'   => $qr->subKategori->cnama,
+                    'lokasi' => $qr->niddept,
+                    'jenis'  => 'QR',
+                ];
+            });
+
+        $assetNonQrList = MassetNoQr::with(['subKategori', 'department'])
+            ->get()
+            ->map(function ($nqr) {
+                return [
+                    'kode'   => $nqr->ckode,
+                    'nama'   => $nqr->cnama,
+                    'lokasi' => $nqr->niddept,
+                    'jenis'  => 'NON QR',
+                ];
+            });
+
+        $assetDropdown = collect($assetQrList)
+            ->merge($assetNonQrList)
+            ->sortBy('kode')
+            ->values();
+
+        // LOAD NORMAL (FIRST LOAD)
         return view('Asset.index', [
-            // yang sudah ada
+
             'satuan'       => $satuan,
             'kategori'     => $kategori,
             'kategoriAll'  => $kategoriAll,
             'SatuanAll'    => $SatuanAll,
-            'subkategori'  => MassetSubKat::with('kategori')->get(),
+            'subkategoriAll' => $subkategoriAll,
+            'assetQrAll'   => $AssetQrAll,
+            'assetNoQrAll' => $AssetNoQrAll,
+            'subkategori'  => $subkategori,
             'departments'  => Mdepartment::all(),
-            'assetQr'      => MassetQr::with('subKategori.kategori', 'department')->get(),
-            'assetNoQr'    => MassetNoQr::with('subKategori.kategori', 'department', 'satuan')->get(),
-
-            // 🔥 INI YANG KURANG
-            'transaksi' => MassetTrans::with([
-                'subKategori.kategori',
-                'department',
-            ])->orderByDesc('nid')->get(),
+            'assetQr'      => $assetQr,
+            'assetNoQr'    => $assetNoQr,
+            'transaksi'    => $transaksi,
+            'assetDropdown' => $assetDropdown,
         ]);
     }
-
-
 
     /**
      * Simpan asset (QR / Non QR)
@@ -86,6 +154,8 @@ class AssetController extends Controller
             'niddept'    => 'required|exists:mdepartment,nid',
 
             // NON QR
+            'cnama'      => 'nullable|string|max:255',
+            'kode_urut'  => 'nullable|string|max:10',
             'nqty'       => 'nullable|integer|min:1',
             'nminstok'   => 'nullable|integer|min:0',
             'msatuan_id' => 'nullable|exists:msatuan,id',
