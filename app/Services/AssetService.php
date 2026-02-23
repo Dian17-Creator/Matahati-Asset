@@ -6,6 +6,7 @@ use App\Models\MassetSubKat;
 use App\Models\MassetQr;
 use App\Models\MassetNoQr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AssetService
 {
@@ -40,7 +41,7 @@ class AssetService
                     'cqr'       => $qrCode,
                     'dbeli'     => $data['dbeli'] ?? null,
                     'nbeli'     => $data['nbeli'] ?? null,
-                    'cstatus'   => $data['cstatus'] ?? 'AKTIF',
+                    'cstatus'   => $data['cstatus'] ?? 'Aktif',
                     'dtrans'    => now(),
                     'ccatatan'  => $data['ccatatan'] ?? null,
                     'dcreated'  => now(),
@@ -68,44 +69,100 @@ class AssetService
                 throw new \Exception('Nama asset wajib diisi untuk asset Non QR');
             }
 
-            // Bentuk kode & nama (FINAL)
+            // ✅ BENTUK KODE FINAL
             $ckode = $subkat->kategori->ckode
                    . '-' . $subkat->ckode
                    . '-' . $data['kode_urut'];
 
-            $cnama = $data['cnama'];
-
-            $existing = MassetNoQr::where('nidsubkat', $subkat->nid)
-                ->where('niddept', $data['niddept'])
+            // 🔒 CARI BERDASARKAN CKODE (BUKAN SUBKAT!)
+            $existing = MassetNoQr::where('ckode', $ckode)
                 ->lockForUpdate()
                 ->first();
 
             if ($existing) {
 
-                MassetNoQr::where('nidsubkat', $subkat->nid)
-                    ->where('niddept', $data['niddept'])
-                    ->update([
-                        'nqty'       => DB::raw('nqty + ' . (int) $data['nqty']),
-                        'nminstok'   => $data['nminstok'] ?? $existing->nminstok,
-                        'msatuan_id' => $data['msatuan_id'],
-                        'ccatatan'   => $data['ccatatan'] ?? $existing->ccatatan,
-                        'dtrans'     => now(),
-                    ]);
+                // ✅ UPDATE 1 BARIS SAJA
+                $existing->update([
+                    'nqty'       => $existing->nqty + (int) $data['nqty'],
+                    'nminstok'   => $data['nminstok'] ?? $existing->nminstok,
+                    'msatuan_id' => $data['msatuan_id'],
+                    'ccatatan'   => $data['ccatatan'] ?? $existing->ccatatan,
+                    'dtrans'     => now(),
+                ]);
 
                 return $existing->refresh();
             }
 
+            // ✅ JIKA BELUM ADA → CREATE BARU
             return MassetNoQr::create([
                 'nidsubkat'   => $subkat->nid,
                 'niddept'     => $data['niddept'],
-                'ckode'       => $ckode,   // ✅ WAJIB
-                'cnama'       => $cnama,   // ✅ WAJIB
+                'ckode'       => $ckode,
+                'cnama'       => $data['cnama'],
                 'nqty'        => (int) $data['nqty'],
                 'nminstok'    => $data['nminstok'] ?? 0,
                 'msatuan_id'  => $data['msatuan_id'],
                 'dtrans'      => now(),
                 'ccatatan'    => $data['ccatatan'] ?? null,
             ]);
+        });
+    }
+
+    public static function pemusnahanQr(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+
+            $row = DB::table('masset_qr')
+                ->where('nid', $data['nid'])
+                ->lockForUpdate()
+                ->first();
+
+            if (! $row) {
+                throw new \Exception('Asset QR tidak ditemukan');
+            }
+
+            if ($row->cstatus !== 'Aktif') {
+                throw new \Exception('Asset QR sudah Non Aktif');
+            }
+
+            DB::table('masset_qr')
+                ->where('nid', $data['nid'])
+                ->update([
+                    'cstatus'  => 'Non Aktif',
+                    'ccatatan' => $data['ccatatan'] ?? $row->ccatatan,
+                    'dtrans'   => now(),
+                ]);
+
+            return true;
+        });
+    }
+
+    public static function pemusnahanNonQr(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+
+            $row = DB::table('masset_noqr')
+                ->where('ckode', $data['ckode'])
+                ->lockForUpdate()
+                ->first();
+
+            if (! $row) {
+                throw new \Exception('Asset Non QR tidak ditemukan');
+            }
+
+            if ($row->nqty < $data['qty']) {
+                throw new \Exception('Qty melebihi stok');
+            }
+
+            DB::table('masset_noqr')
+                ->where('ckode', $data['ckode'])
+                ->update([
+                    'nqty'     => $row->nqty - $data['qty'],
+                    'ccatatan' => $data['ccatatan'] ?? $row->ccatatan,
+                    'dtrans'   => now(),
+                ]);
+
+            return true;
         });
     }
 }

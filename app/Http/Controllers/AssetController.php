@@ -119,6 +119,16 @@ class AssetController extends Controller
                 ];
             });
 
+        //Data Pemusnahan Asset
+        $assetQrAktif = MassetQr::with('subKategori')
+            ->where('cstatus', 'Aktif')
+            ->orderBy('cqr')
+            ->get();
+
+        $assetNonQrPemusnahan = MassetNoQr::where('nqty', '>', 0)
+            ->orderBy('ckode')
+            ->get();
+
         $assetDropdown = collect($assetQrList)
             ->merge($assetNonQrList)
             ->sortBy('kode')
@@ -126,20 +136,25 @@ class AssetController extends Controller
 
         // LOAD NORMAL (FIRST LOAD)
         return view('Asset.index', [
-
             'satuan'       => $satuan,
             'kategori'     => $kategori,
             'kategoriAll'  => $kategoriAll,
+
             'SatuanAll'    => $SatuanAll,
             'subkategoriAll' => $subkategoriAll,
             'assetQrAll'   => $AssetQrAll,
+
             'assetNoQrAll' => $AssetNoQrAll,
             'subkategori'  => $subkategori,
             'departments'  => Mdepartment::all(),
+
             'assetQr'      => $assetQr,
             'assetNoQr'    => $assetNoQr,
             'transaksi'    => $transaksi,
+
             'assetDropdown' => $assetDropdown,
+            'assetQrAktif' => $assetQrAktif,
+            'assetNonQrPemusnahan' => $assetNonQrPemusnahan,
         ]);
     }
 
@@ -280,6 +295,37 @@ class AssetController extends Controller
 
         return redirect()->route('asset.index')
             ->with('success', 'Sub Kategori berhasil dihapus');
+    }
+
+    public function pemusnahan(Request $request)
+    {
+        if ($request->jenis_asset === 'QR') {
+            $request->validate([
+                'kode_asset_qr' => 'required|integer|exists:masset_qr,nid',
+                'ccatatan' => 'nullable|string|max:100',
+            ]);
+
+            AssetService::pemusnahanQr([
+                'nid' => $request->kode_asset_qr,
+                'ccatatan' => $request->ccatatan,
+            ]);
+        }
+
+        if ($request->jenis_asset === 'NON_QR') {
+            $request->validate([
+                'kode_asset_nonqr' => 'required|string|exists:masset_noqr,ckode',
+                'qty' => 'required|integer|min:1',
+                'ccatatan' => 'nullable|string|max:100',
+            ]);
+
+            AssetService::pemusnahanNonQr([
+                'ckode' => $request->kode_asset_nonqr,
+                'qty' => $request->qty,
+                'ccatatan' => $request->ccatatan,
+            ]);
+        }
+
+        return back()->with('success', 'Asset berhasil dimusnahkan');
     }
 
 }
