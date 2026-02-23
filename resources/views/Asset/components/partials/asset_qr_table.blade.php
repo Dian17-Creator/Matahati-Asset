@@ -36,7 +36,12 @@
                     {{ $qr->nbeli ? 'Rp ' . number_format($qr->nbeli, 0, ',', '.') : '-' }}
                 </td>
 
-                <td>{{ $qr->cstatus }}</td>
+                <td class="text-center">
+                    <span class="badge {{ strtolower($qr->cstatus) === 'aktif' ? 'bg-success' : 'bg-danger' }}">
+                        {{ $qr->cstatus }}
+                    </span>
+                </td>
+
                 <td>{{ $qr->ccatatan }}</td>
             </tr>
         @endforeach

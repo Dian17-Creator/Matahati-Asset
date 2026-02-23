@@ -36,6 +36,9 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', [AssetController::class, 'deleteSubKategori'])->name('destroy');
         });
 
+        Route::post('/pemusnahan', [AssetController::class, 'pemusnahan'])
+            ->name('pemusnahan');
+
     });
 
     // MSATUAN
