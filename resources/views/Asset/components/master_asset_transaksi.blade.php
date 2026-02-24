@@ -3,6 +3,15 @@
         Pemusnahan Asset
     </button>
 
+    <button class="btn btn-sm btn-warning" style="color: white;" data-bs-toggle="modal"
+        data-bs-target="#modalAssetPerbaikan">
+        Perbaikan Asset
+    </button>
+
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalAssetMutasi">
+        Mutasi Asset
+    </button>
+
     <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAssetTrans">
         + Tambah Transaksi
     </button>

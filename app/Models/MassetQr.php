@@ -18,6 +18,7 @@ class MassetQr extends Model
         'niddept',
         'nurut',
         'cqr',
+        'cnama',
         'dbeli',
         'nbeli',
         'cstatus',

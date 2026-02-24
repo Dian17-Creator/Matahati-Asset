@@ -36,9 +36,17 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', [AssetController::class, 'deleteSubKategori'])->name('destroy');
         });
 
+        //Pemusnahan
         Route::post('/pemusnahan', [AssetController::class, 'pemusnahan'])
             ->name('pemusnahan');
 
+        //Perbaikan
+        Route::post('/qr/perbaikan', [AssetController::class, 'perbaikanQr'])
+            ->name('qr.perbaikan');
+
+        //Mutasi
+        Route::post('/mutasi', [AssetController::class, 'mutasi'])
+            ->name('mutasi');
     });
 
     // MSATUAN

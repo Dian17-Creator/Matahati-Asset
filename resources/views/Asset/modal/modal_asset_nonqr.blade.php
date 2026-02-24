@@ -35,6 +35,11 @@
                         </select>
                     </div>
 
+                    <div class="mb-2">
+                        <label>Nama Asset</label>
+                        <input type="text" name="cnama" class="form-control" required>
+                    </div>
+
                     {{-- TANGGAL BELI --}}
                     <div class="mb-2">
                         <label>Tanggal Beli</label>
