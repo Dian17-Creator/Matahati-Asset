@@ -39,6 +39,7 @@ class AssetService
                     'niddept'   => $data['niddept'],
                     'nurut'     => $nurut,
                     'cqr'       => $qrCode,
+                    'cnama'     => $data['cnama'] ?? null,
                     'dbeli'     => $data['dbeli'] ?? null,
                     'nbeli'     => $data['nbeli'] ?? null,
                     'cstatus'   => $data['cstatus'] ?? 'Aktif',
@@ -161,6 +162,147 @@ class AssetService
                     'ccatatan' => $data['ccatatan'] ?? $row->ccatatan,
                     'dtrans'   => now(),
                 ]);
+
+            return true;
+        });
+    }
+
+    public static function perbaikanQr(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+
+            $row = DB::table('masset_qr')
+                ->where('nid', $data['nid'])
+                ->lockForUpdate()
+                ->first();
+
+            if (! $row) {
+                throw new \Exception('Asset QR tidak ditemukan');
+            }
+
+            if ($row->cstatus === 'Non Aktif') {
+                throw new \Exception('Asset QR Non Aktif tidak dapat diperbaiki');
+            }
+
+            DB::table('masset_qr')
+                ->where('nid', $data['nid'])
+                ->update([
+                    'cstatus'  => $data['cstatus'],  // Aktif / Perbaikan
+                    'dtrans'   => $data['dtrans'],   // 🔑 TANGGAL PERBAIKAN / KEMBALI
+                    'ccatatan' => $data['ccatatan'] ?? $row->ccatatan,
+                ]);
+
+            return true;
+        });
+    }
+
+    public static function mutasiQr(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+
+            $row = DB::table('masset_qr')
+                ->where('nid', $data['nid'])
+                ->lockForUpdate()
+                ->first();
+
+            if (! $row) {
+                throw new \Exception('Asset QR tidak ditemukan');
+            }
+
+            if ($row->cstatus !== 'Aktif') {
+                throw new \Exception('Hanya asset QR Aktif yang dapat dimutasi');
+            }
+
+            if ($row->niddept == $data['niddept_tujuan']) {
+                throw new \Exception('Lokasi tujuan tidak boleh sama dengan lokasi asal');
+            }
+
+            DB::table('masset_qr')
+                ->where('nid', $data['nid'])
+                ->update([
+                    'niddept'  => $data['niddept_tujuan'],
+                    'dtrans'   => now(),
+                    'ccatatan' => $data['ccatatan'] ?? $row->ccatatan,
+                ]);
+
+            return true;
+        });
+    }
+
+    public static function mutasiNonQr(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+
+            // =========================
+            // DATA ASAL (ckode + niddept)
+            // =========================
+            $asal = DB::table('masset_noqr')
+                ->where('ckode', $data['ckode'])
+                ->where('niddept', $data['niddept_asal'] ?? null)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $asal) {
+                throw new \Exception('Asset Non QR tidak ditemukan di lokasi asal');
+            }
+
+            if ($data['qty'] > $asal->nqty) {
+                throw new \Exception('Qty mutasi melebihi stok asal');
+            }
+
+            if ($asal->niddept == $data['niddept_tujuan']) {
+                throw new \Exception('Lokasi tujuan tidak boleh sama dengan lokasi asal');
+            }
+
+            // =========================
+            // UPDATE QTY ASAL
+            // =========================
+            DB::table('masset_noqr')
+                ->where('ckode', $asal->ckode)
+                ->where('niddept', $asal->niddept)
+                ->update([
+                    'nqty'     => $asal->nqty - $data['qty'],
+                    'dtrans'   => now(),
+                    // 'ccatatan' => $data['ccatatan'] ?? $asal->ccatatan,
+                ]);
+
+            // =========================
+            // DATA TUJUAN
+            // =========================
+            $tujuan = DB::table('masset_noqr')
+                ->where('ckode', $asal->ckode)
+                ->where('niddept', $data['niddept_tujuan'])
+                ->lockForUpdate()
+                ->first();
+
+            if ($tujuan) {
+
+                // UPDATE TUJUAN
+                DB::table('masset_noqr')
+                    ->where('ckode', $asal->ckode)
+                    ->where('niddept', $data['niddept_tujuan'])
+                    ->update([
+                        'nqty'     => $tujuan->nqty + $data['qty'],
+                        'dtrans'   => now(),
+                        'ccatatan' => $data['ccatatan'] ?? $tujuan->ccatatan,
+                    ]);
+
+            } else {
+
+                // INSERT BARU
+                DB::table('masset_noqr')
+                    ->insert([
+                        'nidsubkat'  => $asal->nidsubkat,
+                        'niddept'    => $data['niddept_tujuan'],
+                        'ckode'      => $asal->ckode,
+                        'cnama'      => $asal->cnama,
+                        'nqty'       => $data['qty'],
+                        'nminstok'   => $asal->nminstok,
+                        'msatuan_id' => $asal->msatuan_id,
+                        'dtrans'     => now(),
+                        'ccatatan'   => $data['ccatatan'] ?? $asal->ccatatan,
+                    ]);
+            }
 
             return true;
         });

@@ -125,6 +125,11 @@ class AssetController extends Controller
             ->orderBy('cqr')
             ->get();
 
+        $assetQrPerbaikan = MassetQr::with('subKategori')
+            ->whereIn('cstatus', ['Aktif', 'Perbaikan'])
+            ->orderBy('cqr')
+            ->get();
+
         $assetNonQrPemusnahan = MassetNoQr::where('nqty', '>', 0)
             ->orderBy('ckode')
             ->get();
@@ -154,6 +159,7 @@ class AssetController extends Controller
 
             'assetDropdown' => $assetDropdown,
             'assetQrAktif' => $assetQrAktif,
+            'assetQrPerbaikan' => $assetQrPerbaikan,
             'assetNonQrPemusnahan' => $assetNonQrPemusnahan,
         ]);
     }
@@ -328,4 +334,69 @@ class AssetController extends Controller
         return back()->with('success', 'Asset berhasil dimusnahkan');
     }
 
+    // Perbaikan Asset QR
+    public function perbaikanQr(Request $request)
+    {
+        $validated = $request->validate([
+            'kode_asset_qr' => 'required|integer|exists:masset_qr,nid',
+            'cstatus'       => 'required|in:Aktif,Perbaikan',
+            'dtrans'        => 'required|date',
+            'ccatatan'      => 'nullable|string|max:255',
+        ]);
+
+        AssetService::perbaikanQr([
+            'nid'      => $validated['kode_asset_qr'],
+            'cstatus'  => $validated['cstatus'],
+            'dtrans'   => \Carbon\Carbon::parse($validated['dtrans'])
+                        ->setTimeFrom(now()),
+            'ccatatan' => $validated['ccatatan'] ?? null,
+        ]);
+
+        return back()->with('success', 'Status perbaikan asset berhasil disimpan');
+    }
+
+    public function mutasi(Request $request)
+    {
+        // =========================
+        // MUTASI QR
+        // =========================
+        if ($request->jenis_asset === 'QR') {
+
+            $validated = $request->validate([
+                'kode_asset_qr' => 'required|integer|exists:masset_qr,nid',
+                'niddept_tujuan' => 'required|exists:mdepartment,nid',
+                'ccatatan'      => 'nullable|string|max:255',
+            ]);
+
+            AssetService::mutasiQr([
+                'nid'           => $validated['kode_asset_qr'],
+                'niddept_tujuan' => $validated['niddept_tujuan'],
+                'ccatatan'      => $validated['ccatatan'] ?? null,
+            ]);
+        }
+
+        // =========================
+        // MUTASI NON QR
+        // =========================
+        if ($request->jenis_asset === 'NON_QR') {
+
+            $validated = $request->validate([
+                'kode_asset_nonqr' => 'required|string|exists:masset_noqr,ckode',
+                'niddept_asal'     => 'required|exists:mdepartment,nid',
+                'niddept_tujuan'   => 'required|exists:mdepartment,nid',
+                'qty'              => 'required|integer|min:1',
+                'ccatatan'         => 'nullable|string|max:255',
+            ]);
+
+            AssetService::mutasiNonQr([
+                'ckode'          => $validated['kode_asset_nonqr'],
+                'niddept_asal'   => $validated['niddept_asal'],   // 🔑 WAJIB
+                'niddept_tujuan' => $validated['niddept_tujuan'],
+                'qty'            => (int) $validated['qty'],
+                'ccatatan'       => $validated['ccatatan'] ?? null,
+            ]);
+        }
+
+        return back()->with('success', 'Mutasi asset berhasil disimpan');
+    }
 }

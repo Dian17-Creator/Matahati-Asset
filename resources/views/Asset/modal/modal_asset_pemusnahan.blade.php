@@ -7,7 +7,6 @@
                 {{-- HEADER --}}
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">Pemusnahan Asset</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
                 {{-- BODY --}}

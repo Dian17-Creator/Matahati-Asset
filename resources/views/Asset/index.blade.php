@@ -47,6 +47,10 @@
 
     @include('Asset.modal.modal_asset_pemusnahan')
 
+    @include('Asset.modal.modal_asset_perbaikan')
+
+    @include('Asset.modal.modal_asset_mutasi')
+
     <script>
         window.routeMsatuanStore = "{{ route('msatuan.store') }}";
     </script>
@@ -58,29 +62,4 @@
     <script src="{{ asset('js/asset.js') }}"></script>
 
     <link rel="stylesheet" href="{{ asset('css/asset.css') }}">
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            const debug = sessionStorage.getItem('debug_pemusnahan');
-
-            if (debug) {
-                const data = JSON.parse(debug);
-
-                console.group('%c[DEBUG PEMUSNAHAN ASSET]', 'color:red;font-weight:bold');
-                console.table(data);
-
-                Object.entries(data).forEach(([key, value]) => {
-                    if (value === null || value === '') {
-                        console.warn(`⚠ FIELD KOSONG: ${key}`);
-                    }
-                });
-
-                console.groupEnd();
-
-                // OPTIONAL: hapus setelah tampil
-                sessionStorage.removeItem('debug_pemusnahan');
-            }
-        });
-    </script>
 @endsection
