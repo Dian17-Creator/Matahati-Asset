@@ -86,20 +86,6 @@
                 <a class="navbar-brand fw-bold mb-0" href="{{ route('asset.index') }}">
                     Matahati Asset
                 </a>
-
-                {{-- 🔔 NOTIFIKASI MOBILE --}}
-                <a href="#" class="position-relative text-white d-lg-none" data-bs-toggle="modal"
-                    data-bs-target="#notifModal" id="notifButtonMobileTop">
-
-                    <i class="bi bi-bell-fill mobile-bell-icon"></i>
-
-                    <span id="notifBadgeMobileTop"
-                        class="position-absolute top-0 start-100 translate-middle
-                     badge rounded-pill bg-danger"
-                        style="font-size:0.65rem; display:none;">
-                        0
-                    </span>
-                </a>
             </div>
 
 
@@ -111,6 +97,13 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('backoffice.index') ? 'fw-bold text-white' : '' }}"
                             href="{{ route('asset.index') }}">HOME</a>
+                    </li>
+
+                    <div class="nav-divider"></div>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('backoffice.index') ? 'fw-bold text-white' : '' }}"
+                            href="{{ route('asset.index') }}">RIWAYAT</a>
                     </li>
 
                     <div class="nav-divider"></div>
@@ -134,11 +127,7 @@
             <div class="offcanvas-header"
                 style="background-color: #B63352; color: #fff; display:flex; align-items:center; padding:0 1rem;">
                 <div class="container">
-                    <button id="internalToggler" type="button" class="btn btn-link p-0 me-3 offcanvas-hamburger"
-                        data-bs-dismiss="offcanvas" aria-label="Tutup menu" style="color: white;">
-                        <!-- gunakan bootstrap icon agar selalu tampil -->
-                        <i style="font-size: 100px;" class="bi bi-list" aria-hidden="true"></i>
-                    </button>
+
                 </div>
 
             </div>
@@ -151,6 +140,11 @@
                         <a href="{{ route('asset.index') }}"
                             class="menu-item {{ request()->routeIs('backoffice.index') ? 'active' : '' }}">
                             Home
+                        </a>
+
+                        <a href="{{ route('asset.index') }}"
+                            class="menu-item {{ request()->routeIs('backoffice.index') ? 'active' : '' }}">
+                            Riwayat
                         </a>
 
                         <form action="{{ route('logout') }}" method="POST" class="w-100">
