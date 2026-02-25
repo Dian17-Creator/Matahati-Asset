@@ -30,9 +30,10 @@ class AssetService
                 $nurut = ($lastUrut ?? 0) + 1;
 
                 // ✅ FORMAT QR BARU
+                $counterFormat = str_pad($nurut, 4, '0', STR_PAD_LEFT);
                 $qrCode = $subkat->kategori->ckode
-                        . '-' . $subkat->ckode
-                        . '-' . $nurut;
+                    . '-' . $subkat->ckode
+                    . '-' . $counterFormat;
 
                 return MassetQr::create([
                     'nidsubkat' => $subkat->nid,
