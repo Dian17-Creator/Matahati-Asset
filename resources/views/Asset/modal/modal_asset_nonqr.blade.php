@@ -40,16 +40,16 @@
                         </div>
                     </div>
 
-                    {{-- NAMA ASSET (MANUAL INPUT) --}}
-                    <div class="mb-2">
-                        <label>Nama Asset</label>
-                        <input type="text" name="cnama" class="form-control" required>
-                    </div>
-
                     {{-- KODE URUT --}}
                     <div class="mb-2">
                         <label>Kode Asset (Urut)</label>
                         <input type="text" name="kode_urut" class="form-control" placeholder="Contoh: 0001" required>
+                    </div>
+
+                    {{-- NAMA ASSET (MANUAL INPUT) --}}
+                    <div class="mb-2">
+                        <label>Nama Asset</label>
+                        <input type="text" name="cnama" class="form-control" required>
                     </div>
 
                     <div class="row">

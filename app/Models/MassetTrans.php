@@ -14,27 +14,55 @@ class MassetTrans extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'ngrpid',
-        'ckode',
-        'cnama',
-        'nlokasi',
-        'dbeli',
-        'cmerk',
-        'dgaransi',
-        'nhrgbeli',
-        'ccatatan',
-        'dreffoto',
+        'ngrpid',        // sub kategori
+        'cjnstrans',     // Add | Move | ServiceOut | ServiceIn | Destroy
+        'dtrans',        // tanggal transaksi
+        'cnotrans',       // Nomor transaksi
+        'ckode',         // kode asset
+        'cnama',         // nama asset
+        'nlokasi',       // lokasi / department
+        'dbeli',         // tanggal beli
+        'cmerk',         // merk
+        'dgaransi',      // tanggal garansi
+        'nqty',          // qty (NON QR)
+        'nhrgbeli',      // harga beli
+        'ccatatan',      // catatan
+        'dreffoto',      // foto
+        'fdone',         // flag selesai (0/1)
     ];
+
+    protected $casts = [
+        'dtrans'    => 'date',
+        'dbeli'     => 'date',
+        'dgaransi'  => 'date',
+        'nqty'      => 'integer',
+        'nhrgbeli'  => 'decimal:2',
+        'fdone'     => 'boolean',
+    ];
+
+    /**
+     * =========================
+     * RELATIONS
+     * =========================
+     */
 
     // 🔗 Sub Kategori
     public function subKategori()
     {
-        return $this->belongsTo(MassetSubKat::class, 'ngrpid', 'nid');
+        return $this->belongsTo(
+            MassetSubKat::class,
+            'ngrpid',
+            'nid'
+        );
     }
 
     // 🔗 Department / Lokasi
     public function department()
     {
-        return $this->belongsTo(Mdepartment::class, 'nlokasi', 'nid');
+        return $this->belongsTo(
+            Mdepartment::class,
+            'nlokasi',
+            'nid'
+        );
     }
 }

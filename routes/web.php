@@ -5,6 +5,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\MsatuanController;
 use App\Http\Controllers\MassetTransController;
+use App\Http\Controllers\HistoryTransactionController;
 
 // AUTH
 Route::get('/', fn () => redirect('/login'));
@@ -66,4 +67,8 @@ Route::middleware(['auth'])->group(function () {
         '/asset/transaksi/generate-kode',
         [MassetTransController::class, 'generateQrCode']
     )->name('asset.trans.generate');
+
+    // HISTORY TRANSAKSI
+    Route::get('/asset/history', [HistoryTransactionController::class, 'index'])
+        ->name('Asset.history');
 });

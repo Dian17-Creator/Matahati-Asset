@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('css/navbar.css') }}?v=3">
 
-    <!-- ✅ INLINE STYLE UNTUK OVERRIDE PASTI - TAMBAHKAN INI -->
     <style>
         /* FORCE STYLING MODAL NOTIFIKASI DI MOBILE */
         @media (max-width: 768px) {
@@ -102,8 +101,10 @@
                     <div class="nav-divider"></div>
 
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('backoffice.index') ? 'fw-bold text-white' : '' }}"
-                            href="{{ route('asset.index') }}">RIWAYAT</a>
+                        <a class="nav-link {{ request()->routeIs('Asset.history') ? 'fw-bold text-white' : '' }}"
+                            href="{{ route('Asset.history') }}">
+                            RIWAYAT
+                        </a>
                     </li>
 
                     <div class="nav-divider"></div>
