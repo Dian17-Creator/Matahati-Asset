@@ -4,11 +4,15 @@
             <tr>
                 <th>No</th>
                 <th>Lokasi</th>
+                <th>Tanggal Transaksi</th>
+                <th>Nomor Transaksi</th>
+                <th>Jenis Transaksi</th>
                 <th>Kategori</th>
                 <th>Sub Kategori</th>
                 <th>Kode Asset</th>
                 <th>Nama Asset</th>
                 <th>Merk</th>
+                <th>Qty</th>
                 <th>Tgl Beli</th>
                 <th>Garansi</th>
                 <th>Harga</th>
@@ -19,11 +23,52 @@
 
         <tbody>
             @forelse ($transaksi as $row)
+                @php
+                    $jenis = strtolower($row->cjnstrans);
+
+                    $badgeClass = match ($jenis) {
+                        'add' => 'bg-success',
+                        'move' => 'bg-info',
+                        'serviceout' => 'bg-primary',
+                        'servicein' => 'bg-warning text-dark',
+                        'dispose' => 'bg-danger',
+                        default => 'bg-secondary',
+                    };
+
+                    $labelJenis = match ($jenis) {
+                        'add' => 'Penambahan',
+                        'move' => 'Mutasi',
+                        'serviceout' => 'Perbaikan Selesai',
+                        'servicein' => 'Perbaikan Masuk',
+                        'dispose' => 'Pemusnahan',
+                        default => strtoupper($row->cjnstrans),
+                    };
+                @endphp
+
                 <tr>
                     <td class="text-center">{{ $loop->iteration }}</td>
 
-                    {{-- Lokasi / Department --}}
+                    {{-- Lokasi --}}
                     <td>{{ $row->department->cname ?? '-' }}</td>
+
+                    {{-- Tanggal Transaksi --}}
+                    <td class="text-center">
+                        {{ $row->dtrans ? $row->dtrans->format('d-m-Y') : '-' }}
+                    </td>
+
+                    {{-- Nomor Transaksi --}}
+                    <td class="text-center">
+                        <span class="badge bg-dark">
+                            {{ $row->cnotrans }}
+                        </span>
+                    </td>
+
+                    {{-- Jenis Transaksi --}}
+                    <td class="text-center">
+                        <span class="badge {{ $badgeClass }}">
+                            {{ $labelJenis }}
+                        </span>
+                    </td>
 
                     {{-- Kategori --}}
                     <td>{{ $row->subKategori->kategori->cnama ?? '-' }}</td>
@@ -43,6 +88,11 @@
 
                     {{-- Merk --}}
                     <td>{{ $row->cmerk ?? '-' }}</td>
+
+                    {{-- Qty --}}
+                    <td class="text-center">
+                        {{ $row->nqty ?? 1 }}
+                    </td>
 
                     {{-- Tanggal Beli --}}
                     <td class="text-center">
@@ -76,13 +126,18 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="12" class="text-center text-muted">
+                    <td colspan="16" class="text-center text-muted">
                         Belum ada transaksi asset
                     </td>
                 </tr>
             @endforelse
         </tbody>
     </table>
+
+</div>
+
+<div class="d-flex justify-content-center mt-2">
+    {{ $transaksi->links('pagination::bootstrap-5') }}
 </div>
 
 <style>
@@ -97,7 +152,7 @@
     }
 
     .table-scroll table {
-        min-width: 1500px;
+        min-width: 2000px;
         /* paksa biar bisa scroll horizontal */
         table-layout: auto;
     }
@@ -116,8 +171,3 @@
         vertical-align: middle;
     }
 </style>
-
-{{-- PAGINATION --}}
-<div class="d-flex justify-content-center">
-    {{ $transaksi->links('pagination::bootstrap-5') }}
-</div>

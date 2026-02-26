@@ -44,7 +44,8 @@ class AssetController extends Controller
                 'department',
             ])
             ->orderByDesc('ckode')
-            ->paginate(5, ['*'], 'transaksi_page');
+            ->paginate(5, ['*'], 'transaksi_page')
+            ->withQueryString(); // 🔥 WAJIB
 
         // ✅ FULL DATA UNTUK DROPDOWN
         $kategoriAll = MassetKat::orderBy('ckode')->get();
@@ -92,6 +93,13 @@ class AssetController extends Controller
                     compact('assetNoQr')
                 )->render();
             }
+
+            if ($request->has('transaksi_page')) {
+                return view(
+                    'Asset.components.partials.transaksi_table',
+                    compact('transaksi')
+                )->render();
+            }
         }
 
         // =========================
@@ -102,9 +110,11 @@ class AssetController extends Controller
             ->map(function ($qr) {
                 return [
                     'kode'   => $qr->cqr,
-                    'nama'   => $qr->subKategori->cnama,
-                    'lokasi' => $qr->niddept,
+                    'nama'   => $qr->cnama ?? $qr->subKategori->cnama,
+                    'lokasi' => $qr->department->cname ?? '-',
+                    'qty'    => 1,              // QR = 1 unit
                     'jenis'  => 'QR',
+                    'niddept' => $qr->niddept,
                 ];
             });
 
@@ -114,8 +124,10 @@ class AssetController extends Controller
                 return [
                     'kode'   => $nqr->ckode,
                     'nama'   => $nqr->cnama,
-                    'lokasi' => $nqr->niddept,
+                    'lokasi' => $nqr->department->cname ?? '-',
+                    'qty'    => $nqr->nqty,
                     'jenis'  => 'NON QR',
+                    'niddept' => $nqr->niddept,
                 ];
             });
 
