@@ -62,6 +62,7 @@ class MassetTransController extends Controller
             if (! $qr) {
                 $nonQr = MassetNoQr::with('subKategori')
                     ->where('ckode', $validated['ckode_asset'])
+                    ->lockForUpdate() // 🔒 penting
                     ->first();
             }
 
@@ -79,14 +80,14 @@ class MassetTransController extends Controller
             */
             $jenis   = 'add';
             $prefix  = 'AD';
-            $periode = now()->format('ym'); // contoh: 2602
+            $periode = now()->format('ym');
 
-            $lastUrut = MassetTrans::where('cjnstrans', $jenis)
+            $urut = MassetTrans::where('cjnstrans', $jenis)
                 ->whereRaw("DATE_FORMAT(dtrans,'%y%m') = ?", [$periode])
+                ->lockForUpdate()
                 ->count() + 1;
 
-            $noUrut   = str_pad($lastUrut, 4, '0', STR_PAD_LEFT);
-            $cnotrans = "{$prefix}/{$periode}-{$noUrut}";
+            $cnotrans = $prefix.'/'.$periode.'-'.str_pad($urut, 4, '0', STR_PAD_LEFT);
 
             /*
             ======================
@@ -108,8 +109,8 @@ class MassetTransController extends Controller
             MassetTrans::create([
                 'ngrpid'     => $asset->nidsubkat,
                 'cjnstrans'  => $jenis,
-                'dtrans'     => Carbon::now(),          // 🔥 JAM SEKARANG
-                'cnotrans'   => $cnotrans,               // 🔥 AUTO NUMBER
+                'dtrans'     => Carbon::now(),
+                'cnotrans'   => $cnotrans,
 
                 'ckode'      => $validated['ckode_asset'],
                 'cnama'      => $asset->cnama ?? $asset->subKategori->cnama,
@@ -124,6 +125,22 @@ class MassetTransController extends Controller
                 'dreffoto'   => $namaFoto,
                 'fdone'      => 0,
             ]);
+
+            // ======================
+            // UPDATE STOK NON QR (FIX BUG)
+            // ======================
+            if ($nonQr) {
+
+                MassetNoQr::where('ckode', $validated['ckode_asset'])
+                    ->where('niddept', $validated['nlokasi']) // 🔥 WAJIB
+                    ->update([
+                        'nqty'     => DB::raw('nqty + '.(int) $validated['nqty']),
+                        'ccatatan' => $validated['ccatatan']
+                                        ? $validated['ccatatan']
+                                        : $nonQr->ccatatan,
+                        'dtrans'   => now(),
+                    ]);
+            }
         });
 
         return back()->with('success', 'Transaksi penambahan asset berhasil disimpan');

@@ -43,7 +43,7 @@
                     {{-- QTY --}}
                     <div class="mb-2">
                         <label>Qty</label>
-                        <input type="number" name="nqty" id="qtyInput" class="form-control" min="1"
+                        <input type="text" name="nqty" id="qtyInput" class="form-control" min="1"
                             value="1" required>
                     </div>
 
@@ -69,7 +69,7 @@
                     {{-- HARGA --}}
                     <div class="mb-2">
                         <label>Harga Beli</label>
-                        <input type="number" name="nhrgbeli" class="form-control">
+                        <input type="text" name="nhrgbeli" class="form-control">
                     </div>
 
                     {{-- CATATAN --}}
