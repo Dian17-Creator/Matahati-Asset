@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\MassetTrans;
-use App\Models\MassetQr;
 use App\Models\MassetNoQr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use App\Services\AssetService;
 
 class MassetTransController extends Controller
 {
@@ -33,116 +32,192 @@ class MassetTransController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'ckode_asset' => 'required|string',
-            'nlokasi'     => 'required|integer|exists:mdepartment,nid',
-            'nqty'        => 'required|integer|min:1',
+        DB::transaction(function () use ($request) {
 
-            'dbeli'       => 'nullable|date',
-            'cmerk'       => 'nullable|string|max:50',
-            'dgaransi'    => 'nullable|date',
-            'nhrgbeli'    => 'nullable|numeric',
-            'ccatatan'    => 'nullable|string|max:100',
+            /**
+             * =================================================
+             * TRANSAKSI QR (UNIT BARU)
+             * =================================================
+             */
+            if ($request->jenis_asset === 'QR') {
 
-            'foto'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+                $validated = $request->validate([
+                    'sub_kategori_id' => 'required|exists:masset_subkat,nid',
+                    'nlokasi'         => 'required|exists:mdepartment,nid',
+                    'nama_asset'      => 'nullable|string|max:255',
+                    'cmerk'           => 'nullable|string|max:255',
+                    'dbeli'           => 'nullable|date',
+                    'dgaransi'        => 'nullable|date',
+                    'nhrgbeli'        => 'nullable|numeric',
+                    'ccatatan'        => 'nullable|string',
+                    'foto'            => 'nullable|image|max:2048',
+                ]);
 
-        DB::transaction(function () use ($validated, $request) {
+                /**
+                 * 1️⃣ SIMPAN ASSET QR (UNIT)
+                 */
+                $qr = AssetService::storeQr([
+                    'nidsubkat' => $validated['sub_kategori_id'],
+                    'niddept'   => $validated['nlokasi'],
+                    'cnama'     => $validated['nama_asset'] ?? null,
+                    'cmerk'     => $validated['cmerk'] ?? null,
+                    'dbeli'     => $validated['dbeli'] ?? null,
+                    'dgaransi'  => $validated['dgaransi'] ?? null,
+                    'nbeli'     => $validated['nhrgbeli'] ?? 0,
+                    'ccatatan'  => $validated['ccatatan'] ?? null,
+                ]);
 
-            /*
-            ======================
-            CARI ASSET (QR / NON QR)
-            ======================
-            */
-            $qr = MassetQr::with('subKategori')
-                ->where('cqr', $validated['ckode_asset'])
-                ->first();
+                /**
+                 * 2️⃣ GENERATE NO TRANSAKSI
+                 */
+                $periode = now()->format('ym');
+                $urut = MassetTrans::where('cjnstrans', 'Add')
+                    ->whereRaw("DATE_FORMAT(dtrans,'%y%m') = ?", [$periode])
+                    ->lockForUpdate()
+                    ->count() + 1;
 
-            $nonQr = null;
-            if (! $qr) {
-                $nonQr = MassetNoQr::with('subKategori')
-                    ->where('ckode', $validated['ckode_asset'])
-                    ->lockForUpdate() // 🔒 penting
-                    ->first();
+                $cnotrans = 'AD/'.$periode.'-'.str_pad($urut, 4, '0', STR_PAD_LEFT);
+
+                /**
+                 * 3️⃣ UPLOAD FOTO (OPSIONAL)
+                 */
+                $namaFoto = null;
+                if ($request->hasFile('foto')) {
+                    $file = $request->file('foto');
+                    $namaFoto = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+                    $file->move(public_path('uploads/asset'), $namaFoto);
+                }
+
+                /**
+                 * 4️⃣ LOG TRANSAKSI QR
+                 */
+                MassetTrans::create([
+                    'ngrpid'        => $qr->nidsubkat,
+                    'cjnstrans'     => 'Add',
+                    'dtrans'        => now(),
+                    'cnotrans'      => $cnotrans,
+
+                    'ckode'         => $qr->cqr,
+                    'cnama'         => $qr->cnama,
+                    'cmerk'         => $validated['cmerk'] ?? null,     // ✅ AMBIL DARI REQUEST
+                    'nlokasi'       => $qr->niddept,
+
+                    'dbeli'         => $qr->dbeli,
+                    'dgaransi'      => $validated['dgaransi'] ?? null,  // ✅ REQUEST
+                    'nhrgbeli'      => $qr->nbeli ?? 0,
+                    'nqty'          => 1,
+
+                    'nqtyselesai'   => 0,
+                    'creftrans'     => $cnotrans,
+
+                    'ccatatan'      => $validated['ccatatan'] ?? null,
+                    'dreffoto'      => $namaFoto,
+                ]);
             }
 
-            if (! $qr && ! $nonQr) {
-                throw new \Exception('Kode asset tidak valid');
-            }
+            /**
+             * =================================================
+             * TRANSAKSI NON QR (STOK)
+             * =================================================
+             */
+            if ($request->jenis_asset === 'NON_QR') {
 
-            $asset = $qr ?? $nonQr;
+                $validated = $request->validate([
+                    'ckode_asset_nonqr' => 'required|exists:masset_noqr,ckode',
+                    'nqty'              => 'required|integer|min:1',
+                    'dbeli'             => 'nullable|date',
+                    'nhrgbeli'          => 'nullable|numeric',
+                    'ccatatan'          => 'nullable|string',
+                ]);
 
-            /*
-            ======================
-            GENERATE NOMOR TRANSAKSI
-            FORMAT: AD/YYMM-XXXX
-            ======================
-            */
-            $jenis   = 'add';
-            $prefix  = 'AD';
-            $periode = now()->format('ym');
+                $nonQr = MassetNoQr::where('ckode', $validated['ckode_asset_nonqr'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            $urut = MassetTrans::where('cjnstrans', $jenis)
-                ->whereRaw("DATE_FORMAT(dtrans,'%y%m') = ?", [$periode])
-                ->lockForUpdate()
-                ->count() + 1;
+                /**
+                 * NO TRANSAKSI
+                 */
+                $periode = now()->format('ym');
+                $urut = MassetTrans::where('cjnstrans', 'Add')
+                    ->whereRaw("DATE_FORMAT(dtrans,'%y%m') = ?", [$periode])
+                    ->lockForUpdate()
+                    ->count() + 1;
 
-            $cnotrans = $prefix.'/'.$periode.'-'.str_pad($urut, 4, '0', STR_PAD_LEFT);
+                $cnotrans = 'AD/'.$periode.'-'.str_pad($urut, 4, '0', STR_PAD_LEFT);
 
-            /*
-            ======================
-            HANDLE UPLOAD FOTO
-            ======================
-            */
-            $namaFoto = null;
-            if ($request->hasFile('foto')) {
-                $file = $request->file('foto');
-                $namaFoto = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
-                $file->move(public_path('uploads/asset'), $namaFoto);
-            }
+                /**
+                 * LOG TRANSAKSI NON QR
+                 */
+                MassetTrans::create([
+                    'ngrpid'        => $nonQr->nidsubkat,
+                    'cjnstrans'     => 'Add',
+                    'dtrans'        => now(),
+                    'cnotrans'      => $cnotrans,
 
-            /*
-            ======================
-            SIMPAN TRANSAKSI ADD
-            ======================
-            */
-            MassetTrans::create([
-                'ngrpid'     => $asset->nidsubkat,
-                'cjnstrans'  => $jenis,
-                'dtrans'     => Carbon::now(),
-                'cnotrans'   => $cnotrans,
+                    'ckode'         => $nonQr->ckode,
+                    'cnama'         => $nonQr->cnama,
+                    'cmerk'         => $nonQr->cmerk ?? null,
+                    'nlokasi'       => $nonQr->niddept,
 
-                'ckode'      => $validated['ckode_asset'],
-                'cnama'      => $asset->cnama ?? $asset->subKategori->cnama,
-                'nlokasi'    => $validated['nlokasi'],
+                    'nqty'          => $validated['nqty'],
+                    'dbeli'         => $validated['dbeli'] ?? null,
+                    'nhrgbeli'      => $validated['nhrgbeli'] ?? 0,
 
-                'nqty'       => $validated['nqty'],
-                'dbeli'      => $validated['dbeli'],
-                'cmerk'      => $validated['cmerk'],
-                'dgaransi'   => $validated['dgaransi'],
-                'nhrgbeli'   => $validated['nhrgbeli'] ?? 0,
-                'ccatatan'   => $validated['ccatatan'],
-                'dreffoto'   => $namaFoto,
-                'fdone'      => 0,
-            ]);
+                    'nqtyselesai'   => 0,
+                    'creftrans'     => $cnotrans,
 
-            // ======================
-            // UPDATE STOK NON QR (FIX BUG)
-            // ======================
-            if ($nonQr) {
+                    'ccatatan'      => $validated['ccatatan'] ?? null,
+                ]);
 
-                MassetNoQr::where('ckode', $validated['ckode_asset'])
-                    ->where('niddept', $validated['nlokasi']) // 🔥 WAJIB
-                    ->update([
-                        'nqty'     => DB::raw('nqty + '.(int) $validated['nqty']),
-                        'ccatatan' => $validated['ccatatan']
-                                        ? $validated['ccatatan']
-                                        : $nonQr->ccatatan,
-                        'dtrans'   => now(),
-                    ]);
+                /**
+                 * UPDATE STOK
+                 */
+                $nonQr->update([
+                    'nqty'   => $nonQr->nqty + $validated['nqty'],
+                    'dtrans' => now(),
+                ]);
             }
         });
 
-        return back()->with('success', 'Transaksi penambahan asset berhasil disimpan');
+        return back()->with('success', 'Transaksi asset berhasil disimpan');
+    }
+
+    public function transaksiAjax(Request $request)
+    {
+        $query = MassetTrans::with(['subKategori.kategori','department']);
+
+        if ($request->jenis) {
+            $map = [
+                'Penambahan' => 'Add',
+                'Mutasi' => 'Move',
+                'Perbaikan Masuk' => 'ServiceIn',
+                'Perbaikan Selesai' => 'ServiceOut',
+                'Pemusnahan' => 'Dispose',
+            ];
+            $query->where('cjnstrans', $map[$request->jenis] ?? null);
+        }
+
+        if ($request->kategori) {
+            $query->whereHas(
+                'subKategori.kategori',
+                fn ($q) =>
+                $q->where('cnama', $request->kategori)
+            );
+        }
+
+        if ($request->subkategori) {
+            $query->whereHas(
+                'subKategori',
+                fn ($q) =>
+                $q->where('cnama', $request->subkategori)
+            );
+        }
+
+        $transaksi = $query
+            ->orderByDesc('dtrans')
+            ->paginate(5)
+            ->withQueryString();
+
+        return view('Asset.components.partials.transaksi_table', compact('transaksi'));
     }
 }

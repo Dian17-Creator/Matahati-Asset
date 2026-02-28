@@ -53,6 +53,8 @@ class AssetController extends Controller
         $subkategoriAll = MassetSubKat::with('kategori')->orderBy('ckode')->get();
         $AssetQrAll = MassetQr::with(['subKategori.kategori', 'department'])->orderBy('cqr')->get();
         $AssetNoQrAll = MassetNoQr::with(['subKategori.kategori', 'department', 'satuan'])->orderBy('ckode')->get();
+        $kategoriFilter = \App\Models\MassetKat::orderBy('cnama')->get();
+        $subKategoriFilter = \App\Models\MassetSubKat::orderBy('cnama')->get();
 
         // =========================
         // HANDLE AJAX REQUEST
@@ -126,7 +128,7 @@ class AssetController extends Controller
                     'nama'   => $nqr->cnama,
                     'lokasi' => $nqr->department->cname ?? '-',
                     'qty'    => $nqr->nqty,
-                    'jenis'  => 'NON QR',
+                    'jenis'  => 'NON_QR',
                     'niddept' => $nqr->niddept,
                 ];
             });
@@ -173,6 +175,9 @@ class AssetController extends Controller
             'assetQrAktif' => $assetQrAktif,
             'assetQrPerbaikan' => $assetQrPerbaikan,
             'assetNonQrPemusnahan' => $assetNonQrPemusnahan,
+
+            'kategoriFilter' => $kategoriFilter,
+            'subKategoriFilter' => $subKategoriFilter,
         ]);
     }
 
@@ -189,7 +194,7 @@ class AssetController extends Controller
             // NON QR
             'cnama'      => 'nullable|string|max:255',
             'kode_urut'  => 'nullable|string|max:10',
-            'nqty'       => 'nullable|integer|min:1',
+            'nqty'       => 'nullable|integer|min:0',
             'nminstok'   => 'nullable|integer|min:0',
             'msatuan_id' => 'nullable|exists:msatuan,id',
 

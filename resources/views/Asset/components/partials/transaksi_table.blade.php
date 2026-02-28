@@ -1,16 +1,33 @@
 <div class="table-scroll">
-    <table class="table table-bordered table-sm">
+    <table id="assetTable" class="table table-bordered table-sm">
         <thead class="text-center">
             <tr>
-                <th>No</th>
-                <th>Lokasi</th>
-                <th>Tanggal Transaksi</th>
+
+                <th class="sortable" data-column="lokasi">
+                    Lokasi <span class="sort-icon" id="sortIconLokasi">↕</span>
+                </th>
+
+                <th class="sortable" data-column="tanggal">
+                    Tanggal Transaksi <span class="sort-icon" id="sortIconTanggal">↕</span>
+                </th>
+
                 <th>Nomor Transaksi</th>
-                <th>Jenis Transaksi</th>
+
+                <th class="sortable" data-column="jenis">
+                    Jenis Transaksi <span class="sort-icon" id="sortIconJenis">↕</span>
+                </th>
+
                 <th>Kategori</th>
                 <th>Sub Kategori</th>
-                <th>Kode Asset</th>
-                <th>Nama Asset</th>
+
+                <th class="sortable" data-column="kode">
+                    Kode Asset <span class="sort-icon" id="sortIconKode">↕</span>
+                </th>
+
+                <th class="sortable" data-column="nama">
+                    Nama Asset <span class="sort-icon" id="sortIconNama">↕</span>
+                </th>
+
                 <th>Merk</th>
                 <th>Qty</th>
                 <th>Tgl Beli</th>
@@ -46,7 +63,6 @@
                 @endphp
 
                 <tr>
-                    <td class="text-center">{{ $loop->iteration }}</td>
 
                     {{-- Lokasi --}}
                     <td>{{ $row->department->cname ?? '-' }}</td>
@@ -141,6 +157,11 @@
 </div>
 
 <style>
+    th.sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+
     .table-scroll {
         max-height: 400px;
         /* tinggi area scroll */
@@ -171,3 +192,68 @@
         vertical-align: middle;
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const table = document.getElementById('assetTable');
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        /**
+         * MAP KOLOM → INDEX TD
+         * (HARUS SESUAI URUTAN <th>)
+         */
+        const columnMap = {
+            lokasi: 0,
+            tanggal: 1,
+            jenis: 3,
+            kode: 6,
+            nama: 7,
+        };
+
+        const sortState = {}; // simpan arah per kolom
+
+        function sortTable(colIndex) {
+            const rows = Array.from(tbody.querySelectorAll('tr'))
+                .filter(r => r.cells.length > colIndex);
+
+            const direction = sortState[colIndex] === 'asc' ? 'desc' : 'asc';
+            sortState[colIndex] = direction;
+
+            rows.sort((a, b) => {
+                const aVal = a.cells[colIndex]?.innerText.trim().toLowerCase() || '';
+                const bVal = b.cells[colIndex]?.innerText.trim().toLowerCase() || '';
+
+                return direction === 'asc' ?
+                    aVal.localeCompare(bVal, 'id') :
+                    bVal.localeCompare(aVal, 'id');
+            });
+
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        document.querySelectorAll('#assetTable th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+
+                // reset semua icon
+                document.querySelectorAll('#assetTable .sort-icon')
+                    .forEach(icon => icon.textContent = '↕');
+
+                const key = th.dataset.column;
+                const colIndex = columnMap[key];
+
+                if (colIndex === undefined) return;
+
+                sortTable(colIndex);
+
+                const icon = th.querySelector('.sort-icon');
+                icon.textContent = sortState[colIndex] === 'asc' ? '▲' : '▼';
+            });
+        });
+
+    });
+</script>

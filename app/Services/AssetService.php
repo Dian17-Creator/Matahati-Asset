@@ -12,82 +12,89 @@ class AssetService
 {
     public static function store(array $data)
     {
+        $subkat = MassetSubKat::findOrFail($data['nidsubkat']);
+
+        if ($subkat->isQr()) {
+            return self::storeQr($data);
+        }
+
+        return self::storeNonQr($data);
+    }
+
+    public static function storeQr(array $data): MassetQr
+    {
         return DB::transaction(function () use ($data) {
 
             $subkat = MassetSubKat::with('kategori')
                 ->findOrFail($data['nidsubkat']);
 
-            /**
-             * =========================
-             * ASSET QR (UNIT)
-             * =========================
-             */
+            if (! $subkat->isQr()) {
+                throw new \Exception('Sub kategori bukan QR');
+            }
+
+            $lastUrut = MassetQr::where('nidsubkat', $subkat->nid)->max('nurut');
+            $nurut = ($lastUrut ?? 0) + 1;
+
+            $qrCode =
+                $subkat->kategori->ckode . '-' .
+                $subkat->ckode . '-' .
+                str_pad($nurut, 4, '0', STR_PAD_LEFT);
+
+            return MassetQr::create([
+                'nidsubkat' => $subkat->nid,
+                'niddept'   => $data['niddept'],
+                'nurut'     => $nurut,
+                'cqr'       => $qrCode,
+
+                // 🔥 DATA UNIT (WAJIB KONSISTEN)
+                'cnama'     => $data['cnama']     ?? null,
+                'cmerk'     => $data['cmerk']     ?? null,
+                'dbeli'     => $data['dbeli']     ?? null,
+                'dgaransi'  => $data['dgaransi']  ?? null,
+                'nbeli'     => $data['nbeli']     ?? 0,
+
+                'cstatus'   => 'Aktif',
+                'ccatatan'  => $data['ccatatan']  ?? null,
+                'dtrans'    => now(),
+                'dcreated'  => now(),
+            ]);
+        });
+    }
+
+    public static function storeNonQr(array $data): MassetNoQr
+    {
+        return DB::transaction(function () use ($data) {
+
+            $subkat = MassetSubKat::with('kategori')
+                ->findOrFail($data['nidsubkat']);
+
             if ($subkat->isQr()) {
-
-                $lastUrut = MassetQr::where('nidsubkat', $subkat->nid)
-                    ->max('nurut');
-
-                $nurut = ($lastUrut ?? 0) + 1;
-
-                // ✅ FORMAT QR BARU
-                $counterFormat = str_pad($nurut, 4, '0', STR_PAD_LEFT);
-                $qrCode = $subkat->kategori->ckode
-                    . '-' . $subkat->ckode
-                    . '-' . $counterFormat;
-
-                return MassetQr::create([
-                    'nidsubkat' => $subkat->nid,
-                    'niddept'   => $data['niddept'],
-                    'nurut'     => $nurut,
-                    'cqr'       => $qrCode,
-                    'cnama'     => $data['cnama'] ?? null,
-                    'dbeli'     => $data['dbeli'] ?? null,
-                    'nbeli'     => $data['nbeli'] ?? null,
-                    'cstatus'   => $data['cstatus'] ?? 'Aktif',
-                    'dtrans'    => now(),
-                    'ccatatan'  => $data['ccatatan'] ?? null,
-                    'dcreated'  => now(),
-                ]);
+                throw new \Exception('Sub kategori QR tidak boleh masuk Non QR');
             }
 
-            /**
-             * =========================
-             * ASSET NON QR (STOK)
-             * =========================
-             */
-            if (empty($data['msatuan_id'])) {
-                throw new \Exception('Satuan wajib diisi untuk asset Non QR');
+            foreach (['msatuan_id','kode_urut','cnama','niddept'] as $field) {
+                if (empty($data[$field])) {
+                    throw new \Exception("Field {$field} wajib diisi");
+                }
             }
 
-            if (empty($data['nqty'])) {
-                throw new \Exception('Qty wajib diisi untuk asset Non QR');
-            }
+            $nqty = isset($data['nqty']) ? (int) $data['nqty'] : 0;
 
-            if (empty($data['kode_urut'])) {
-                throw new \Exception('Kode urut wajib diisi untuk asset Non QR');
-            }
+            $ckode =
+                $subkat->kategori->ckode . '-' .
+                $subkat->ckode . '-' .
+                $data['kode_urut'];
 
-            if (empty($data['cnama'])) {
-                throw new \Exception('Nama asset wajib diisi untuk asset Non QR');
-            }
-
-            // ✅ BENTUK KODE FINAL
-            $ckode = $subkat->kategori->ckode
-                   . '-' . $subkat->ckode
-                   . '-' . $data['kode_urut'];
-
-            // 🔒 CARI BERDASARKAN CKODE (BUKAN SUBKAT!)
             $existing = MassetNoQr::where('ckode', $ckode)
+                ->where('niddept', $data['niddept'])
                 ->lockForUpdate()
                 ->first();
 
             if ($existing) {
-
-                // ✅ UPDATE 1 BARIS SAJA
                 $existing->update([
-                    'nqty'       => $existing->nqty + (int) $data['nqty'],
-                    'nminstok'   => $data['nminstok'] ?? $existing->nminstok,
+                    'nqty' => $existing->nqty + $nqty,
                     'msatuan_id' => $data['msatuan_id'],
+                    'nminstok'   => $data['nminstok'] ?? $existing->nminstok,
                     'ccatatan'   => $data['ccatatan'] ?? $existing->ccatatan,
                     'dtrans'     => now(),
                 ]);
@@ -95,17 +102,16 @@ class AssetService
                 return $existing->refresh();
             }
 
-            // ✅ JIKA BELUM ADA → CREATE BARU
             return MassetNoQr::create([
-                'nidsubkat'   => $subkat->nid,
-                'niddept'     => $data['niddept'],
-                'ckode'       => $ckode,
-                'cnama'       => $data['cnama'],
-                'nqty'        => (int) $data['nqty'],
-                'nminstok'    => $data['nminstok'] ?? 0,
-                'msatuan_id'  => $data['msatuan_id'],
-                'dtrans'      => now(),
-                'ccatatan'    => $data['ccatatan'] ?? null,
+                'nidsubkat'  => $subkat->nid,
+                'niddept'    => $data['niddept'],
+                'ckode'      => $ckode,
+                'cnama'      => $data['cnama'],
+                'nqty'       => $nqty,
+                'msatuan_id' => $data['msatuan_id'],
+                'nminstok'   => $data['nminstok'] ?? 0,
+                'ccatatan'   => $data['ccatatan'] ?? null,
+                'dtrans'     => now(),
             ]);
         });
     }

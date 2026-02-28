@@ -4,9 +4,9 @@
 
         <span>Asset QR</span>
 
-        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAssetQr">
+        {{-- <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAssetQr">
             + Tambah Asset QR
-        </button>
+        </button> --}}
     </div>
 
     <div class="card-body">

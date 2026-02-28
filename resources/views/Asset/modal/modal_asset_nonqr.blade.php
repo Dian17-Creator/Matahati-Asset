@@ -43,7 +43,7 @@
                     {{-- KODE URUT --}}
                     <div class="mb-2">
                         <label>Kode Asset (Urut)</label>
-                        <input type="text" name="kode_urut" class="form-control" placeholder="Contoh: 0001" required>
+                        <input type="text" name="kode_urut" class="form-control" required>
                     </div>
 
                     {{-- NAMA ASSET (MANUAL INPUT) --}}
@@ -52,20 +52,9 @@
                         <input type="text" name="cnama" class="form-control" required>
                     </div>
 
-                    <div class="row">
-
-                        {{-- QTY --}}
-                        <div class="col-md-6 mb-2">
-                            <label>Qty</label>
-                            <input type="text" name="nqty" class="form-control" min="1" required>
-                        </div>
-
-                        {{-- MIN STOK --}}
-                        <div class="col-md-6 mb-2">
-                            <label>Min Stok</label>
-                            <input type="text" name="nminstok" class="form-control" min="0">
-                        </div>
-
+                    <div class="mb-2">
+                        <label>Min Stok</label>
+                        <input type="text" name="nminstok" class="form-control" min="0">
                     </div>
 
                     {{-- SATUAN --}}

@@ -15,29 +15,33 @@ class MassetTrans extends Model
 
     protected $fillable = [
         'ngrpid',        // sub kategori
-        'cjnstrans',     // Add | Move | ServiceOut | ServiceIn | Destroy
+        'cjnstrans',     // Add | Move | ServiceOut | ServiceIn | Dispose
         'dtrans',        // tanggal transaksi
-        'cnotrans',       // Nomor transaksi
+        'cnotrans',      // nomor transaksi
         'ckode',         // kode asset
         'cnama',         // nama asset
         'nlokasi',       // lokasi / department
+
         'dbeli',         // tanggal beli
         'cmerk',         // merk
         'dgaransi',      // tanggal garansi
-        'nqty',          // qty (NON QR)
+
+        'nqty',          // qty transaksi
+        'nqtyselesai',   // qty selesai (service / dispose)
         'nhrgbeli',      // harga beli
+
         'ccatatan',      // catatan
         'dreffoto',      // foto
-        'fdone',         // flag selesai (0/1)
+        'creftrans',     // referensi transaksi (parent)
     ];
 
     protected $casts = [
-        'dtrans'    => 'date',
-        'dbeli'     => 'date',
-        'dgaransi'  => 'date',
-        'nqty'      => 'integer',
-        'nhrgbeli'  => 'decimal:2',
-        'fdone'     => 'boolean',
+        'dtrans'       => 'date',
+        'dbeli'        => 'date',
+        'dgaransi'     => 'date',
+        'nqty'         => 'integer',
+        'nqtyselesai'  => 'integer',
+        'nhrgbeli'     => 'decimal:2',
     ];
 
     /**
@@ -63,6 +67,32 @@ class MassetTrans extends Model
             Mdepartment::class,
             'nlokasi',
             'nid'
+        );
+    }
+
+    /**
+     * =========================
+     * HELPERS (OPTIONAL TAPI KUAT)
+     * =========================
+     */
+
+    // apakah transaksi sudah selesai
+    public function isSelesai(): bool
+    {
+        if ($this->nqtyselesai === null) {
+            return false;
+        }
+
+        return abs($this->nqtyselesai) >= abs($this->nqty);
+    }
+
+    // relasi ke transaksi referensi (self join)
+    public function refTrans()
+    {
+        return $this->belongsTo(
+            self::class,
+            'creftrans',
+            'cnotrans'
         );
     }
 }
