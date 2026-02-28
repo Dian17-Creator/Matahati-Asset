@@ -71,4 +71,6 @@ Route::middleware(['auth'])->group(function () {
     // HISTORY TRANSAKSI
     Route::get('/asset/history', [HistoryTransactionController::class, 'index'])
         ->name('Asset.history');
+    Route::get('/asset/transaksi/ajax', [MassetTransController::class, 'transaksiAjax'])
+    ->name('asset.transaksi.ajax');
 });

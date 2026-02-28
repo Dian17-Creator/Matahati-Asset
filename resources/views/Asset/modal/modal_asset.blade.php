@@ -4,88 +4,145 @@
             @csrf
 
             <div class="modal-content">
+
+                {{-- HEADER --}}
                 <div class="modal-header" style="background-color:#B63352;color:white;">
-                    <h5>Tambah Transaksi Asset</h5>
+                    <h5 class="modal-title">Tambah Transaksi Asset</h5>
                 </div>
 
                 <div class="modal-body">
 
-                    {{-- LOKASI (AUTO DARI ASSET) --}}
+                    {{-- ================= --}}
+                    {{-- JENIS ASSET --}}
+                    {{-- ================= --}}
                     <div class="mb-2">
-                        <label>Lokasi</label>
-                        <select name="nlokasi" id="lokasiSelect" class="form-control" required>
-                            <option value="">-- Pilih Lokasi --</option>
-                            @foreach ($departments as $dept)
-                                <option value="{{ $dept->nid }}">
-                                    {{ $dept->cname }}
-                                </option>
-                            @endforeach
+                        <label>Jenis Asset</label>
+                        <select name="jenis_asset" id="jenisAsset" class="form-control" required>
+                            <option value="">-- Pilih Jenis --</option>
+                            <option value="QR">QR</option>
+                            <option value="NON_QR">Non QR</option>
                         </select>
                     </div>
 
-                    {{-- KODE ASSET --}}
-                    <div class="mb-2">
-                        <label>Kode Asset</label>
-                        <select name="ckode_asset" id="assetSelect" class="form-control" required>
-                            <option value="">-- Pilih Kode Asset --</option>
+                    <hr>
 
-                            @foreach ($assetDropdown as $a)
-                                <option value="{{ $a['kode'] }}" data-lokasi="{{ $a['niddept'] }}"
-                                    data-qty="{{ $a['qty'] }}" data-jenis="{{ $a['jenis'] }}">
-                                    [{{ $a['jenis'] }}]
-                                    {{ $a['kode'] }} — {{ $a['nama'] }}
-                                    ({{ $a['lokasi'] }} | Qty: {{ $a['qty'] }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    {{-- ================= --}}
+                    {{-- FORM QR --}}
+                    {{-- ================= --}}
+                    <div id="formQR" style="display:none">
 
-                    {{-- QTY --}}
-                    <div class="mb-2">
-                        <label>Qty</label>
-                        <input type="text" name="nqty" id="qtyInput" class="form-control" min="1"
-                            value="1" required>
-                    </div>
+                        <div class="row gx-2">
+                            {{-- LOKASI --}}
+                            <div class="col-md-6 mb-3">
+                                <label>Lokasi</label>
+                                <select name="nlokasi" class="form-control">
+                                    <option value="">-- Pilih Lokasi --</option>
+                                    @foreach ($departments as $dept)
+                                        <option value="{{ $dept->nid }}">{{ $dept->cname }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                    {{-- MERK --}}
-                    <div class="mb-2">
-                        <label>Merk</label>
-                        <input type="text" name="cmerk" class="form-control">
-                    </div>
-
-                    {{-- TANGGAL BELI & GARANSI --}}
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label>Tanggal Beli</label>
-                            <input type="date" name="dbeli" class="form-control" value="{{ date('Y-m-d') }}">
+                            {{-- SUB KATEGORI --}}
+                            <div class="col-md-6 mb-3">
+                                <label>Sub Kategori</label>
+                                <select name="sub_kategori_id" class="form-control">
+                                    <option value="">-- Pilih Sub Kategori --</option>
+                                    @foreach ($subkategoriAll as $s)
+                                        @if ($s->fqr == 1)
+                                            <option value="{{ $s->nid }}">
+                                                {{ $s->kategori->ckode }} - {{ $s->ckode }} | {{ $s->cnama }}
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label>Garansi Sampai</label>
-                            <input type="date" name="dgaransi" class="form-control">
+                        {{-- NAMA ASSET & MERK --}}
+                        <div class="row gx-2">
+                            <div class="col-md-6 mb-2">
+                                <label>Nama Asset</label>
+                                <input type="text" name="nama_asset" class="form-control">
+                            </div>
+
+                            <div class="col-md-6 mb-2">
+                                <label>Merk</label>
+                                <input type="text" name="cmerk" class="form-control">
+                            </div>
                         </div>
+
                     </div>
 
-                    {{-- HARGA --}}
-                    <div class="mb-2">
-                        <label>Harga Beli</label>
-                        <input type="text" name="nhrgbeli" class="form-control">
+                    {{-- ================= --}}
+                    {{-- FORM NON QR --}}
+                    {{-- ================= --}}
+                    <div id="formNonQR" style="display:none">
+
+                        {{-- KODE ASSET --}}
+                        <div class="mb-2">
+                            <label>Kode Asset (Non QR)</label>
+                            <select name="ckode_asset_nonqr" class="form-control">
+                                <option value="">-- Pilih Kode Asset --</option>
+                                @foreach ($assetDropdown as $a)
+                                    @if ($a['jenis'] === 'NON_QR')
+                                        <option value="{{ $a['kode'] }}">
+                                            {{ $a['kode'] }} — {{ $a['nama'] }}
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- QTY --}}
+                        <div class="mb-2">
+                            <label>Qty</label>
+                            <input type="number" name="nqty" class="form-control" value="1" min="1">
+                        </div>
+
                     </div>
 
-                    {{-- CATATAN --}}
-                    <div class="mb-2">
-                        <label>Catatan</label>
-                        <textarea name="ccatatan" class="form-control"></textarea>
-                    </div>
+                    {{-- ========================= --}}
+                    {{-- FORM BERSAMA --}}
+                    {{-- ========================= --}}
+                    <div id="formCommon" style="display:none">
 
-                    {{-- FOTO --}}
-                    <div class="mb-2">
-                        <label>Foto Asset (Opsional)</label>
-                        <input type="file" name="foto" class="form-control">
+                        {{-- TANGGAL --}}
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label>Tanggal Beli</label>
+                                <input type="date" name="dbeli" class="form-control" value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="col-md-6 mb-2">
+                                <label>Garansi Sampai</label>
+                                <input type="date" name="dgaransi" class="form-control">
+                            </div>
+                        </div>
+
+                        {{-- HARGA --}}
+                        <div class="mb-2">
+                            <label>Harga Beli</label>
+                            <input type="text" name="nhrgbeli" class="form-control">
+                        </div>
+
+                        {{-- CATATAN (DIPINDAH KE BAWAH) --}}
+                        <div class="mb-2">
+                            <label>Catatan</label>
+                            <textarea name="ccatatan" class="form-control"></textarea>
+                        </div>
+
+                        {{-- FOTO --}}
+                        <div class="mb-2">
+                            <label>Foto Asset (Opsional)</label>
+                            <input type="file" name="foto" class="form-control">
+                        </div>
+
                     </div>
 
                 </div>
 
+                {{-- FOOTER --}}
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Batal
@@ -94,37 +151,38 @@
                         Simpan
                     </button>
                 </div>
+
             </div>
         </form>
     </div>
 </div>
 
+{{-- ================= --}}
+{{-- JAVASCRIPT --}}
+{{-- ================= --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
-        const form = document.querySelector('#modalAssetTrans form');
+        const jenis = document.getElementById('jenisAsset');
+        const formQR = document.getElementById('formQR');
+        const formNonQR = document.getElementById('formNonQR');
+        const formCommon = document.getElementById('formCommon');
 
-        form.addEventListener('submit', function() {
-            const data = new FormData(form);
+        jenis.addEventListener('change', function() {
 
-            const payload = {};
-            data.forEach((v, k) => payload[k] = v);
+            formQR.style.display = 'none';
+            formNonQR.style.display = 'none';
+            formCommon.style.display = 'none';
 
-            console.group('🚨 SUBMIT TRANSAKSI ASSET');
-            console.table(payload);
-            console.groupEnd();
+            if (this.value === 'QR') {
+                formQR.style.display = 'block';
+                formCommon.style.display = 'block';
+            }
 
-            // SIMPAN KE LOCALSTORAGE (BERTAHAN SAAT REFRESH)
-            localStorage.setItem('last_asset_trans_submit', JSON.stringify(payload));
+            if (this.value === 'NON_QR') {
+                formNonQR.style.display = 'block';
+                formCommon.style.display = 'block';
+            }
         });
-
-        // TAMPILKAN LAGI SETELAH REFRESH
-        const last = localStorage.getItem('last_asset_trans_submit');
-        if (last) {
-            console.group('♻️ LAST SUBMIT (AFTER REFRESH)');
-            console.table(JSON.parse(last));
-            console.groupEnd();
-        }
-
     });
 </script>
