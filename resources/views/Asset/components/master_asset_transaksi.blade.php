@@ -4,7 +4,7 @@
     <div class="d-flex gap-2 flex-wrap">
 
         {{-- Filter Jenis --}}
-        <select id="filterJenisTransaksi" class="form-select form-select-sm" style="width: 170px;">
+        <select id="filterJenisTransaksi" class="form-select form-select-sm" style="width: 130px;">
             <option value="">Semua Jenis</option>
             <option value="Penambahan">Penambahan</option>
             <option value="Mutasi">Mutasi</option>
@@ -14,7 +14,7 @@
         </select>
 
         {{-- Filter Kategori --}}
-        <select id="filterKategori" class="form-select form-select-sm" style="width: 160px;">
+        <select id="filterKategori" class="form-select form-select-sm" style="width: 150px;">
             <option value="">Semua Kategori</option>
             @foreach ($kategoriFilter as $kat)
                 <option value="{{ $kat->cnama }}">{{ $kat->cnama }}</option>
@@ -22,7 +22,7 @@
         </select>
 
         {{-- Filter Sub Kategori --}}
-        <select id="filterSubKategori" class="form-select form-select-sm" style="width: 160px;">
+        <select id="filterSubKategori" class="form-select form-select-sm" style="width: 175px;">
             <option value="">Semua Sub Kategori</option>
             @foreach ($subKategoriFilter as $sub)
                 <option value="{{ $sub->cnama }}">{{ $sub->cnama }}</option>

@@ -48,6 +48,8 @@ Route::middleware(['auth'])->group(function () {
         //Mutasi
         Route::post('/mutasi', [AssetController::class, 'mutasi'])
             ->name('mutasi');
+
+        Route::get('/get-asset-by-status', [AssetController::class, 'getAssetByStatus']);
     });
 
     // MSATUAN
