@@ -130,7 +130,12 @@ class MassetTransController extends Controller
                     'ccatatan'          => 'nullable|string',
                 ]);
 
+                // 🔐 tentukan lokasi (WAJIB)
+                $niddept = auth()->user()->niddept ?? $request->niddept;
+
+                // 🔒 ambil SATU baris stok (ckode + lokasi)
                 $nonQr = MassetNoQr::where('ckode', $validated['ckode_asset_nonqr'])
+                    ->where('niddept', $niddept)
                     ->lockForUpdate()
                     ->firstOrFail();
 
@@ -145,41 +150,52 @@ class MassetTransController extends Controller
 
                 $cnotrans = 'AD/'.$periode.'-'.str_pad($urut, 4, '0', STR_PAD_LEFT);
 
+                $namaFoto = null;
+                if ($request->hasFile('foto')) {
+                    $file = $request->file('foto');
+                    $namaFoto = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+                    $file->move(public_path('uploads/transaksi'), $namaFoto);
+                }
+
                 /**
                  * LOG TRANSAKSI NON QR
                  */
                 MassetTrans::create([
-                    'ngrpid'        => $nonQr->nidsubkat,
-                    'cjnstrans'     => 'Add',
-                    'dtrans'        => now(),
-                    'cnotrans'      => $cnotrans,
+                    'ngrpid'      => $nonQr->nidsubkat,
+                    'cjnstrans'   => 'Add',
+                    'dtrans'      => now(),
+                    'cnotrans'    => $cnotrans,
 
-                    'ckode'         => $nonQr->ckode,
-                    'cnama'         => $nonQr->cnama,
-                    'cmerk'         => $nonQr->cmerk ?? null,
-                    'nlokasi'       => $nonQr->niddept,
+                    'ckode'       => $nonQr->ckode,
+                    'cnama'       => $nonQr->cnama,
+                    'cmerk'       => $nonQr->cmerk ?? null,
+                    'nlokasi'     => $nonQr->niddept,
 
-                    'nqty'          => $validated['nqty'],
-                    'dbeli'         => $validated['dbeli'] ?? null,
-                    'nhrgbeli'      => $validated['nhrgbeli'] ?? 0,
+                    'nqty'        => $validated['nqty'],
+                    'dbeli'       => $validated['dbeli'] ?? null,
+                    'nhrgbeli'    => $validated['nhrgbeli'] ?? 0,
 
-                    'nqtyselesai'   => 0,
-                    'creftrans'     => $cnotrans,
-
-                    'ccatatan'      => $validated['ccatatan'] ?? null,
+                    'nqtyselesai' => 0,
+                    'creftrans'   => $cnotrans,
+                    'ccatatan'    => $validated['ccatatan'] ?? null,
+                    'dreffoto'    => $namaFoto,
                 ]);
 
                 /**
-                 * UPDATE STOK
+                 * ✅ UPDATE STOK (AMAN, 1 BARIS SAJA)
                  */
-                $nonQr->update([
-                    'nqty'   => $nonQr->nqty + $validated['nqty'],
-                    'dtrans' => now(),
-                ]);
+                DB::table('masset_noqr')
+                    ->where('ckode', $nonQr->ckode)
+                    ->where('niddept', $nonQr->niddept)
+                    ->update([
+                        'nqty'   => DB::raw('nqty + '.(int) $validated['nqty']),
+                        'dtrans' => now(),
+                    ]);
             }
         });
 
-        return back()->with('success', 'Transaksi asset berhasil disimpan');
+        return redirect()->route('asset.index')
+            ->with('success', 'Transaksi asset berhasil disimpan');
     }
 
     public function transaksiAjax(Request $request)

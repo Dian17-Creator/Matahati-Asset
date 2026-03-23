@@ -24,6 +24,7 @@ class MassetNoQr extends Model
         'msatuan_id',
         'dtrans',
         'ccatatan',
+        'cstatus',
     ];
 
     protected $casts = [
