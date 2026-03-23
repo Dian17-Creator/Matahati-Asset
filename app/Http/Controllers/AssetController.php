@@ -354,56 +354,52 @@ class AssetController extends Controller
 
     public function perbaikanQr(Request $request)
     {
-        $jenis  = $request->jenis_asset;
         $status = $request->cstatus;
-
-        Log::info('=== START PERBAIKAN ===');
-        Log::info('REQUEST DATA', $request->all());
 
         try {
 
-            DB::transaction(function () use ($request, $jenis, $status) {
+            DB::transaction(function () use ($request, $status) {
+
+                // 🔥 PARSE VALUE (QR|id atau NON_QR|kode)
+                [$jenis, $kodeFix] = explode('|', $request->kode_asset);
+
+                $request->merge([
+                    'kode_asset' => $kodeFix
+                ]);
 
                 $cjnstrans = $status === 'Perbaikan' ? 'ServiceIn' : 'ServiceOut';
 
-                Log::info('Jenis Asset: ' . $jenis);
-                Log::info('Status: ' . $status);
-                Log::info('Jenis Transaksi: ' . $cjnstrans);
+                // ================= VALIDASI =================
+                if ($jenis === 'QR') {
+                    $validated = $request->validate([
+                        'kode_asset' => 'required',
+                        'ccatatan'   => 'nullable|string|max:255',
+                    ]);
+                } else {
+                    $validated = $request->validate([
+                        'kode_asset' => 'required',
+                        'nidsubkat'  => 'required|integer',
+                        'niddept'    => 'required|integer',
+                        'qty'        => 'required|integer|min:1',
+                        'ccatatan'   => 'nullable|string|max:255',
+                    ]);
+                }
 
-                /**
-                 * =========================
-                 * QR (UNIT)
-                 * =========================
-                 */
+                Log::info('=== START PERBAIKAN ===');
+                Log::info('PARSED', ['jenis' => $jenis, 'kode' => $kodeFix]);
+
+                // ================= QR =================
                 if ($jenis === 'QR') {
 
-                    Log::info('MASUK QR FLOW');
-
-                    $validated = $request->validate([
-                        'kode_asset_qr' => 'required|integer|exists:masset_qr,nid',
-                        'ccatatan'      => 'nullable|string|max:255',
-                    ]);
-
-                    Log::info('VALIDATED QR', $validated);
-
-                    $asset = MassetQr::where('nid', $validated['kode_asset_qr'])
+                    $asset = MassetQr::where('nid', $validated['kode_asset'])
                         ->lockForUpdate()
-                        ->first();
-
-                    if (!$asset) {
-                        Log::error('QR ASSET NOT FOUND');
-                        throw new \Exception('Asset QR tidak ditemukan');
-                    }
-
-                    Log::info('ASSET QR', $asset->toArray());
+                        ->firstOrFail();
 
                     $asset->update([
                         'cstatus'  => $status,
                         'dtrans'   => now(),
                         'ccatatan' => $validated['ccatatan'] ?? null,
                     ]);
-
-                    Log::info('QR UPDATED');
 
                     MassetTrans::create([
                         'ngrpid'      => $asset->nidsubkat,
@@ -414,96 +410,119 @@ class AssetController extends Controller
                         'ckode'       => $asset->cqr,
                         'cnama'       => $asset->cnama,
                         'nlokasi'     => $asset->niddept,
-                        'nhrgbeli'    => $qr->nbeli ?? 0,
 
                         'nqty'        => 1,
                         'nqtyselesai' => $cjnstrans === 'ServiceOut' ? 1 : 0,
                         'ccatatan'    => $validated['ccatatan'] ?? null,
-                    ]);
 
-                    Log::info('TRANSAKSI QR BERHASIL');
+                        // 🔥 KUNCI
+                        'jenis_asset' => 'QR',
+                    ]);
                 }
 
-                /**
-                 * =========================
-                 * NON QR (STOK)
-                 * =========================
-                 */
+                // ================= NON QR =================
                 if ($jenis === 'NON_QR') {
 
-                    Log::info('MASUK NON QR FLOW');
+                    if ($cjnstrans === 'ServiceIn') {
 
-                    $validated = $request->validate([
-                        'kode_asset_qr' => 'required|string',
-                        'nidsubkat'     => 'required|integer',
-                        'niddept'       => 'required|integer',
-                        'qty'           => 'required|integer|min:1',
-                        'ccatatan'      => 'nullable|string|max:255',
-                    ]);
+                        $asset = DB::table('masset_noqr')
+                            ->where('ckode', $validated['kode_asset'])
+                            ->where('nidsubkat', $validated['nidsubkat'])
+                            ->where('niddept', $validated['niddept'])
+                            ->first();
 
-                    Log::info('VALIDATED NON QR', $validated);
+                        if (!$asset) {
+                            throw new \Exception('Asset tidak ditemukan');
+                        }
 
-                    /**
-                     * 🔥 UPDATE STATUS (SPESIFIK 1 ROW)
-                     */
-                    DB::table('masset_noqr')
-                        ->where('ckode', $validated['kode_asset_qr'])
-                        ->where('nidsubkat', $validated['nidsubkat'])
-                        ->where('niddept', $validated['niddept'])
-                        ->update([
-                            'cstatus'  => $status,
-                            'dtrans'   => now(),
-                            'ccatatan' => $validated['ccatatan'] ?? null,
+                        DB::table('masset_noqr')
+                            ->where('ckode', $validated['kode_asset'])
+                            ->where('nidsubkat', $validated['nidsubkat'])
+                            ->where('niddept', $validated['niddept'])
+                            ->update([
+                                'cstatus' => 'Perbaikan',
+                                'dtrans'  => now(),
+                            ]);
+
+                        MassetTrans::create([
+                            'ngrpid'      => $validated['nidsubkat'],
+                            'cjnstrans'   => 'ServiceIn',
+                            'dtrans'      => now(),
+                            'cnotrans'    => 'SV/' . now()->format('ym') . '-' . rand(1000, 9999),
+
+                            'ckode'       => $validated['kode_asset'],
+                            'cnama'       => $asset->cnama,
+                            'nlokasi'     => $validated['niddept'],
+
+                            'nqty'        => $validated['qty'],
+                            'nqtyselesai' => 0,
+                            'ccatatan'    => $validated['ccatatan'] ?? null,
+
+                            // 🔥 KUNCI
+                            'jenis_asset' => 'NON_QR',
                         ]);
-
-                    Log::info('NON QR STATUS UPDATED');
-
-                    /**
-                     * 🔥 AMBIL DATA SETELAH UPDATE
-                     */
-                    $asset = DB::table('masset_noqr')
-                        ->where('ckode', $validated['kode_asset_qr'])
-                        ->where('nidsubkat', $validated['nidsubkat'])
-                        ->where('niddept', $validated['niddept'])
-                        ->first();
-
-                    if (!$asset) {
-                        Log::error('NON QR ASSET NOT FOUND AFTER UPDATE');
-                        throw new \Exception('Asset tidak ditemukan');
                     }
 
-                    /**
-                     * 🔥 TRANSAKSI
-                     */
-                    MassetTrans::create([
-                        'ngrpid'      => $asset->nidsubkat,
-                        'cjnstrans'   => $cjnstrans,
-                        'dtrans'      => now(),
-                        'cnotrans'    => 'SV/' . now()->format('ym') . '-' . rand(1000, 9999),
+                    if ($cjnstrans === 'ServiceOut') {
 
-                        'ckode'       => $asset->ckode,
-                        'cnama'       => $asset->cnama,
-                        'nlokasi'     => $asset->niddept,
+                        $transIn = MassetTrans::where('ckode', $validated['kode_asset'])
+                            ->where('cjnstrans', 'ServiceIn')
+                            ->where('nlokasi', $validated['niddept'])
+                            // ->where('jenis_asset', 'NON_QR') // 🔥 PENTING
+                            ->orderByDesc('dtrans')
+                            ->lockForUpdate()
+                            ->first();
 
-                        'nqty'        => $validated['qty'],
-                        'nqtyselesai' => $cjnstrans === 'ServiceOut' ? $validated['qty'] : 0,
-                        'ccatatan'    => $validated['ccatatan'] ?? null,
-                    ]);
+                        if (!$transIn) {
+                            throw new \Exception('Data ServiceIn tidak ditemukan');
+                        }
 
-                    Log::info('TRANSAKSI NON QR BERHASIL');
+                        $sisa = $transIn->nqty - ($transIn->nqtyselesai ?? 0);
+
+                        if ($validated['qty'] > $sisa) {
+                            throw new \Exception("Qty melebihi sisa ({$sisa})");
+                        }
+
+                        $transIn->update([
+                            'nqtyselesai' => ($transIn->nqtyselesai ?? 0) + $validated['qty']
+                        ]);
+
+                        DB::table('masset_noqr')
+                            ->where('ckode', $validated['kode_asset'])
+                            ->where('nidsubkat', $validated['nidsubkat'])
+                            ->where('niddept', $validated['niddept'])
+                            ->update([
+                                'cstatus' => ($sisa - $validated['qty']) <= 0 ? 'Aktif' : 'Perbaikan',
+                                'dtrans'  => now(),
+                            ]);
+
+                        MassetTrans::create([
+                            'ngrpid'      => $validated['nidsubkat'],
+                            'cjnstrans'   => 'ServiceOut',
+                            'dtrans'      => now(),
+                            'cnotrans'    => 'SV/' . now()->format('ym') . '-' . rand(1000, 9999),
+
+                            'ckode'       => $validated['kode_asset'],
+                            'cnama'       => $transIn->cnama,
+                            'nlokasi'     => $validated['niddept'],
+
+                            'nqty'        => $validated['qty'],
+                            'nqtyselesai' => $validated['qty'],
+                            'ccatatan'    => $validated['ccatatan'] ?? null,
+
+                            // 🔥 KUNCI
+                            'jenis_asset' => 'NON_QR',
+                        ]);
+                    }
                 }
-            });
 
-            Log::info('=== END SUCCESS ===');
+                Log::info('=== END PERBAIKAN ===');
+            });
 
             return back()->with('success', 'Transaksi perbaikan berhasil disimpan');
 
         } catch (\Throwable $e) {
-
-            Log::error('=== ERROR PERBAIKAN ===');
-            Log::error($e->getMessage());
-            Log::error($e->getTraceAsString());
-
+            Log::error('ERROR PERBAIKAN: ' . $e->getMessage());
             return back()->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
@@ -557,48 +576,117 @@ class AssetController extends Controller
     {
         $status = $request->status;
 
-        if ($status === 'Perbaikan') {
-            $qr = MassetQr::with('subKategori')
-                ->where('cstatus', 'Aktif')
-                ->get();
-
-            $nonqr = MassetNoQr::with('subKategori')
-                ->where('cstatus', 'Aktif')
-                ->get();
-        } else {
-            $qr = MassetQr::with('subKategori')
-                ->where('cstatus', 'Perbaikan')
-                ->get();
-
-            $nonqr = MassetNoQr::with('subKategori')
-                ->where('cstatus', 'Perbaikan')
-                ->get();
-        }
-
         $result = collect();
 
-        // QR
-        foreach ($qr as $item) {
-            $result->push([
-                'id'      => $item->nid,
-                'kode'    => $item->cqr,
-                'nama'    => $item->cnama ?? $item->subKategori->cnama,
-                'status'  => $item->cstatus,
-                'jenis'   => 'QR',
-            ]);
+        /**
+         * =========================
+         * PERBAIKAN MASUK
+         * =========================
+         */
+        if ($status === 'Perbaikan') {
+
+            // QR dari aktif
+            $qr = MassetQr::with(['subKategori', 'department'])
+                ->where('cstatus', 'Aktif')
+                ->get();
+
+            // ambil semua kode QR
+            $qrCodes = $qr->pluck('cqr')->toArray();
+
+            // NON QR dari stok aktif
+            $nonqr = MassetNoQr::with('subKategori')
+                ->where('cstatus', 'Aktif')
+                ->where('nqty', '>', 0)
+                ->get();
+
+            // ================= QR =================
+            foreach ($qr as $item) {
+                $result->push([
+                    'id'      => $item->nid,
+                    'kode'    => $item->cqr,
+                    'nama'    => $item->cnama ?? optional($item->subKategori)->cnama,
+                    'jenis'   => 'QR',
+                    'lokasi' => optional($item->department)->cname ?? $item->niddept,
+                ]);
+            }
+
+            // ================= NON QR =================
+            foreach ($nonqr as $item) {
+
+                // 🔥 FILTER DUPLIKAT (kalau sudah ada QR)
+                if (in_array($item->ckode, $qrCodes)) {
+                    continue;
+                }
+
+                $result->push([
+                    'id'        => $item->ckode,
+                    'kode'      => $item->ckode,
+                    'nama'      => $item->cnama,
+                    'jenis'     => 'NON_QR',
+                    'nidsubkat' => $item->nidsubkat,
+                    'niddept'   => $item->niddept,
+                    'qty'       => $item->nqty,
+                    'lokasi'    => optional($item->department)->cname ?? $item->niddept, // 🔥
+                ]);
+            }
         }
 
-        // NON QR
-        foreach ($nonqr as $item) {
-            $result->push([
-                'id'      => $item->ckode,
-                'kode'    => $item->ckode,
-                'nama'    => $item->cnama,
-                'status'  => $item->cstatus,
-                'jenis'   => 'NON_QR',
-                'nidsubkat' => $item->nidsubkat,
-                'niddept'   => $item->niddept,
-            ]);
+        /**
+         * =========================
+         * PERBAIKAN SELESAI
+         * =========================
+         */ else {
+
+            // QR dari status perbaikan
+            $qr = MassetQr::with(['subKategori', 'department'])
+                 ->where('cstatus', 'Perbaikan')
+                 ->get();
+
+            // ambil kode QR
+            $qrCodes = $qr->pluck('cqr')->toArray();
+
+            // NON QR dari transaksi (FIX FINAL)
+            $nonqr = MassetTrans::where('cjnstrans', 'ServiceIn')
+                ->whereRaw('(nqty - nqtyselesai) > 0')
+                ->whereNotExists(function ($q) {
+                    $q->select(DB::raw(1))
+                    ->from('masset_qr')
+                    ->whereColumn('masset_qr.cqr', 'masset_trans.ckode');
+                })
+                ->get();
+
+            // ================= QR =================
+            foreach ($qr as $item) {
+                $result->push([
+                    'id'      => $item->nid,
+                    'kode'    => $item->cqr,
+                    'nama'    => $item->cnama ?? optional($item->subKategori)->cnama,
+                    'jenis'   => 'QR',
+                    'lokasi'  => optional($item->department)->cname ?? $item->niddept, // 🔥 TAMBAH
+                ]);
+            }
+
+            // ================= NON QR =================
+            foreach ($nonqr as $item) {
+
+                // 🔥 FILTER DUPLIKAT (kalau sudah ada QR)
+                if (in_array($item->ckode, $qrCodes)) {
+                    continue;
+                }
+
+                $result->push([
+                    'id'        => $item->ckode,
+                    'kode'      => $item->ckode,
+                    'nama'      => $item->cnama,
+                    'jenis'     => 'NON_QR',
+                    'sisa'      => $item->nqty - $item->nqtyselesai,
+                    'nidsubkat' => $item->ngrpid,
+                    'niddept'   => $item->nlokasi,
+                    'lokasi' => DB::table('mdepartment')
+                        ->where('nid', $item->nlokasi)
+                        ->value('cname') ?? $item->nlokasi
+                ]);
+            }
         }
 
         return response()->json($result);

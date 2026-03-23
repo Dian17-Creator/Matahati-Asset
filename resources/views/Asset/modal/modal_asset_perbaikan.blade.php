@@ -29,7 +29,7 @@
                     {{-- ASSET --}}
                     <div class="mb-3">
                         <label class="form-label fw-bold">Asset</label>
-                        <select name="kode_asset_qr" id="assetSelect" class="form-select" required disabled>
+                        <select name="kode_asset" id="assetSelect" class="form-select" required disabled>
                             <option value="">-- Pilih Status Dulu --</option>
                         </select>
                     </div>
@@ -99,14 +99,36 @@
                     let html = '<option value="">-- Pilih Asset --</option>';
 
                     data.forEach(item => {
+
+                        let lokasi = item.lokasi ?? '-';
+
+                        let label =
+                            `[${item.jenis}] ${lokasi} - ${item.kode} - ${item.nama}`;
+
+                        let extra = '';
+
+                        if (item.jenis === 'NON_QR') {
+
+                            // 🔵 kalau ada sisa → perbaikan selesai
+                            if (item.sisa !== undefined) {
+                                extra = `(Sisa: ${item.sisa})`;
+                            }
+
+                            // 🟡 kalau tidak ada sisa → perbaikan masuk
+                            else if (item.qty !== undefined) {
+                                extra = `(Stok: ${item.qty})`;
+                            }
+                        }
+
                         html += `<option
-                        value="${item.id}"
-                        data-jenis="${item.jenis}"
-                        data-subkat="${item.nidsubkat}"
-                        data-dept="${item.niddept}"
-                    >
-                        [${item.jenis}] ${item.kode} - ${item.nama}
-                    </option>`;
+                            value="${item.jenis}|${item.id}"
+                            data-jenis="${item.jenis}"
+                            data-subkat="${item.nidsubkat}"
+                            data-dept="${item.niddept}"
+                            data-sisa="${item.sisa ?? ''}"
+                        >
+                            ${label} ${extra}
+                        </option>`;
                     });
 
                     assetSelect.innerHTML = html;
