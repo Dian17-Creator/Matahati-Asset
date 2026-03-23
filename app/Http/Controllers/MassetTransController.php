@@ -200,8 +200,21 @@ class MassetTransController extends Controller
 
     public function transaksiAjax(Request $request)
     {
+        $sort = $request->get('sort', 'tanggal');
+        $direction = $request->get('direction', 'desc');
+
+        // mapping FE → DB
+        $sortable = [
+            'lokasi' => 'nlokasi',
+            'tanggal' => 'dtrans',
+            'jenis' => 'cjnstrans',
+            'kode' => 'ckode',
+            'nama' => 'cnama',
+        ];
+
         $query = MassetTrans::with(['subKategori.kategori','department']);
 
+        // ================= FILTER =================
         if ($request->jenis) {
             $map = [
                 'Penambahan' => 'Add',
@@ -216,21 +229,25 @@ class MassetTransController extends Controller
         if ($request->kategori) {
             $query->whereHas(
                 'subKategori.kategori',
-                fn ($q) =>
-                $q->where('cnama', $request->kategori)
+                fn ($q) => $q->where('cnama', $request->kategori)
             );
         }
 
         if ($request->subkategori) {
             $query->whereHas(
                 'subKategori',
-                fn ($q) =>
-                $q->where('cnama', $request->subkategori)
+                fn ($q) => $q->where('cnama', $request->subkategori)
             );
         }
 
+        // ================= SORTING (INI YANG KURANG) =================
+        if (isset($sortable[$sort])) {
+            $query->orderBy($sortable[$sort], $direction);
+        } else {
+            $query->orderByDesc('dtrans');
+        }
+
         $transaksi = $query
-            ->orderByDesc('dtrans')
             ->paginate(5)
             ->withQueryString();
 

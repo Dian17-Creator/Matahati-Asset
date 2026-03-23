@@ -152,7 +152,7 @@ class AssetService
 
                 'nqty'      => -1,
                 'ccatatan'  => $data['ccatatan'] ?? $row->ccatatan,
-                'fdone'     => 1,
+                // 'fdone'     => 1,
             ]);
 
             // ======================
@@ -202,7 +202,7 @@ class AssetService
 
                 'nqty'      => -1 * (int) $data['qty'],
                 'ccatatan'  => $data['ccatatan'] ?? $row->ccatatan,
-                'fdone'     => 1,
+                // 'fdone'     => 1,
             ]);
 
             // ======================
@@ -278,7 +278,7 @@ class AssetService
                 'nhrgbeli'  => $row->nbeli ?? 0,
                 'nqty'      => 1,
                 'ccatatan'  => $data['ccatatan'] ?? $row->ccatatan,
-                'fdone'     => 1,
+                // 'fdone'     => 1,
             ]);
 
             // =========================
@@ -340,7 +340,7 @@ class AssetService
 
                 'nqty'      => 0, // QR tidak mengubah qty
                 'ccatatan'  => $data['ccatatan'] ?? 'Mutasi lokasi',
-                'fdone'     => 1,
+                // 'fdone'     => 1,
             ]);
 
             // ======================
@@ -400,7 +400,7 @@ class AssetService
 
                 'nqty'      => -1 * (int) $data['qty'], // 🔥 KELUAR
                 'ccatatan'  => $data['ccatatan'] ?? 'Mutasi keluar',
-                'fdone'     => 1,
+                // 'fdone'     => 1,
             ]);
 
             // ======================
@@ -418,7 +418,7 @@ class AssetService
 
                 'nqty'      => +1 * (int) $data['qty'], // 🔥 MASUK
                 'ccatatan'  => $data['ccatatan'] ?? 'Mutasi masuk',
-                'fdone'     => 1,
+                // 'fdone'     => 1,
             ]);
 
             // ======================
