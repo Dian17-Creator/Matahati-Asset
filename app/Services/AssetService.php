@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\MassetSubKat;
 use App\Models\MassetQr;
 use App\Models\MassetNoQr;
+use App\Models\MassetTrans;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -20,7 +21,6 @@ class AssetService
 
         return self::storeNonQr($data);
     }
-
     public static function storeQr(array $data): MassetQr
     {
         return DB::transaction(function () use ($data) {
@@ -60,7 +60,6 @@ class AssetService
             ]);
         });
     }
-
     public static function storeNonQr(array $data): MassetNoQr
     {
         return DB::transaction(function () use ($data) {
@@ -115,7 +114,6 @@ class AssetService
             ]);
         });
     }
-
     public static function pemusnahanQr(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -169,7 +167,6 @@ class AssetService
             return true;
         });
     }
-
     public static function pemusnahanNonQr(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -219,7 +216,6 @@ class AssetService
             return true;
         });
     }
-
     public static function perbaikanQr(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -295,182 +291,168 @@ class AssetService
             return true;
         });
     }
-
-    public static function mutasiQr(array $data)
+    public static function mutasiQr(array $data): void
     {
-        return DB::transaction(function () use ($data) {
+        DB::transaction(function () use ($data) {
 
-            $row = DB::table('masset_qr')
-                ->where('nid', $data['nid'])
-                ->lockForUpdate()
-                ->first();
+            $asset = MassetQr::findOrFail($data['nid']);
 
-            if (! $row) {
-                throw new \Exception('Asset QR tidak ditemukan');
-            }
+            $deptAsal   = $asset->niddept;
+            $deptTujuan = $data['niddept_tujuan'];
 
-            if ($row->cstatus !== 'Aktif') {
-                throw new \Exception('Hanya asset QR Aktif yang dapat dimutasi');
-            }
-
-            if ($row->niddept == $data['niddept_tujuan']) {
-                throw new \Exception('Lokasi tujuan tidak boleh sama dengan lokasi asal');
-            }
-
-            // ======================
-            // GENERATE NO TRANS
-            // ======================
             $cnotrans = self::generateNoTransMove();
 
-            // ======================
-            // INSERT TRANSAKSI
-            // ======================
-            DB::table('masset_trans')->insert([
-                'ngrpid'    => $row->nidsubkat,
-                'cjnstrans' => 'Move',
-                'dtrans'    => now(),
+            // =========================
+            // MOVE OUT
+            // =========================
+            MassetTrans::create([
+                'cjnstrans' => 'MoveOut',
                 'cnotrans'  => $cnotrans,
-
-                'ckode'     => $row->cqr,
-                'cnama'     => $row->cnama,
-                'nlokasi'   => $data['niddept_tujuan'], // lokasi baru
-
-                'dbeli'     => $row->dbeli,
-                'nhrgbeli'  => $row->nbeli ?? 0,
-
-                'nqty'      => 0, // QR tidak mengubah qty
-                'ccatatan'  => $data['ccatatan'] ?? 'Mutasi lokasi',
-                // 'fdone'     => 1,
+                'nidqr'     => $asset->nid,
+                'ckode'     => $asset->cqr,
+                'ngrpid'    => $asset->nidsubkat,
+                'cnama'     => $asset->cnama,
+                'nlokasi'   => $deptAsal,
+                'dbeli'     => $asset->dbeli,
+                'nhrgbeli'  => $asset->nbeli ?? 0,
+                'nqty'      => -1,
+                'ccatatan'  => $data['ccatatan'],
+                'dtrans'    => now(),
             ]);
 
-            // ======================
-            // UPDATE ASSET
-            // ======================
-            DB::table('masset_qr')
-                ->where('nid', $data['nid'])
-                ->update([
-                    'niddept'  => $data['niddept_tujuan'],
-                    'dtrans'   => now(),
-                    'ccatatan' => $data['ccatatan'] ?? $row->ccatatan,
-                ]);
+            // =========================
+            // MOVE IN
+            // =========================
+            MassetTrans::create([
+                'cjnstrans' => 'MoveIn',
+                'cnotrans'  => $cnotrans,
+                'nidqr'     => $asset->nid,
+                'ckode'     => $asset->cqr,        // ✅ FIX
+                'ngrpid'    => $asset->nidsubkat,  // ✅ FIX
+                'cnama'     => $asset->cnama,
+                'nlokasi'   => $deptTujuan,
+                'dbeli'     => $asset->dbeli,
+                'nhrgbeli'  => $asset->nbeli ?? 0,
+                'nqty'      => 1,
+                'ccatatan'  => $data['ccatatan'],
+                'dtrans'    => now(),
+            ]);
 
-            return true;
+            // =========================
+            // UPDATE LOKASI
+            // =========================
+            $asset->update([
+                'niddept' => $deptTujuan
+            ]);
         });
     }
-
-    public static function mutasiNonQr(array $data)
+    public static function mutasiNonQr(array $data): void
     {
-        return DB::transaction(function () use ($data) {
+        DB::transaction(function () use ($data) {
 
-            $asal = DB::table('masset_noqr')
+            // 🚫 VALIDASI LOKASI
+            if ($data['niddept_asal'] == $data['niddept_tujuan']) {
+                throw new \Exception('Lokasi asal dan tujuan tidak boleh sama');
+            }
+
+            // =========================
+            // LOCK DATA ASAL
+            // =========================
+            $assetAsal = DB::table('masset_noqr')
                 ->where('ckode', $data['ckode'])
                 ->where('niddept', $data['niddept_asal'])
                 ->lockForUpdate()
                 ->first();
 
-            if (! $asal) {
-                throw new \Exception('Asset Non QR tidak ditemukan di lokasi asal');
+            if (!$assetAsal) {
+                throw new \Exception('Asset tidak ditemukan di lokasi asal');
             }
 
-            if ($data['qty'] > $asal->nqty) {
-                throw new \Exception('Qty mutasi melebihi stok asal');
+            // =========================
+            // VALIDASI STOK
+            // =========================
+            if ($assetAsal->nqty < $data['qty']) {
+                throw new \Exception('Stok tidak mencukupi untuk mutasi');
             }
 
-            if ($asal->niddept == $data['niddept_tujuan']) {
-                throw new \Exception('Lokasi tujuan tidak boleh sama dengan lokasi asal');
-            }
-
-            // ======================
-            // GENERATE NO TRANS
-            // ======================
+            // =========================
+            // GENERATE NO TRANSAKSI
+            // =========================
             $cnotrans = self::generateNoTransMove();
 
-            // ======================
-            // TRANSAKSI KELUAR (ASAL)
-            // ======================
-            DB::table('masset_trans')->insert([
-                'ngrpid'    => $asal->nidsubkat,
-                'cjnstrans' => 'Move',
-                'dtrans'    => now(),
+            // =========================
+            // MOVE OUT
+            // =========================
+            MassetTrans::create([
+                'cjnstrans' => 'MoveOut',
                 'cnotrans'  => $cnotrans,
-
-                'ckode'     => $asal->ckode,
-                'cnama'     => $asal->cnama,
-                'nlokasi'   => $asal->niddept,
-
-                'nqty'      => -1 * (int) $data['qty'], // 🔥 KELUAR
-                'ccatatan'  => $data['ccatatan'] ?? 'Mutasi keluar',
-                // 'fdone'     => 1,
+                'ckode'     => $assetAsal->ckode,
+                'ngrpid'    => $assetAsal->nidsubkat,
+                'cnama'     => $assetAsal->cnama,
+                'nlokasi'   => $assetAsal->niddept,
+                'nqty'      => -$data['qty'],
+                'ccatatan'  => $data['ccatatan'],
+                'dtrans'    => now(),
             ]);
 
-            // ======================
-            // TRANSAKSI MASUK (TUJUAN)
-            // ======================
-            DB::table('masset_trans')->insert([
-                'ngrpid'    => $asal->nidsubkat,
-                'cjnstrans' => 'Move',
-                'dtrans'    => now(),
-                'cnotrans'  => $cnotrans,
-
-                'ckode'     => $asal->ckode,
-                'cnama'     => $asal->cnama,
-                'nlokasi'   => $data['niddept_tujuan'],
-
-                'nqty'      => +1 * (int) $data['qty'], // 🔥 MASUK
-                'ccatatan'  => $data['ccatatan'] ?? 'Mutasi masuk',
-                // 'fdone'     => 1,
-            ]);
-
-            // ======================
-            // UPDATE STOK ASAL
-            // ======================
+            // =========================
+            // KURANGI STOK ASAL
+            // =========================
             DB::table('masset_noqr')
-                ->where('ckode', $asal->ckode)
-                ->where('niddept', $asal->niddept)
+                ->where('ckode', $assetAsal->ckode)
+                ->where('niddept', $assetAsal->niddept)
                 ->update([
-                    'nqty'   => $asal->nqty - $data['qty'],
-                    'dtrans' => now(),
+                    'nqty' => DB::raw('nqty - '.$data['qty'])
                 ]);
 
-            // ======================
-            // UPDATE / INSERT TUJUAN
-            // ======================
-            $tujuan = DB::table('masset_noqr')
-                ->where('ckode', $asal->ckode)
+            // =========================
+            // LOCK DATA TUJUAN
+            // =========================
+            $assetTujuan = DB::table('masset_noqr')
+                ->where('ckode', $data['ckode'])
                 ->where('niddept', $data['niddept_tujuan'])
                 ->lockForUpdate()
                 ->first();
 
-            if ($tujuan) {
-
+            if ($assetTujuan) {
+                // update
                 DB::table('masset_noqr')
-                    ->where('ckode', $asal->ckode)
+                    ->where('ckode', $data['ckode'])
                     ->where('niddept', $data['niddept_tujuan'])
                     ->update([
-                        'nqty'     => $tujuan->nqty + $data['qty'],
-                        'dtrans'   => now(),
-                        'ccatatan' => $data['ccatatan'] ?? $tujuan->ccatatan,
+                        'nqty' => DB::raw('nqty + '.$data['qty'])
                     ]);
-
             } else {
-
+                // insert baru
                 DB::table('masset_noqr')->insert([
-                    'nidsubkat'  => $asal->nidsubkat,
-                    'niddept'    => $data['niddept_tujuan'],
-                    'ckode'      => $asal->ckode,
-                    'cnama'      => $asal->cnama,
-                    'nqty'       => $data['qty'],
-                    'nminstok'   => $asal->nminstok,
-                    'msatuan_id' => $asal->msatuan_id,
-                    'dtrans'     => now(),
-                    'ccatatan'   => $data['ccatatan'] ?? $asal->ccatatan,
+                    'ckode'     => $assetAsal->ckode,
+                    'cnama'     => $assetAsal->cnama,
+                    'nidsubkat' => $assetAsal->nidsubkat,
+                    'niddept'   => $data['niddept_tujuan'],
+                    'nqty'      => $data['qty'],
+                    'msatuan_id' => $assetAsal->msatuan_id,
+                    'nminstok'  => $assetAsal->nminstok ?? 0,
+                    'ccatatan'  => $data['ccatatan'],
+                    'dtrans'    => now(),
                 ]);
             }
 
-            return true;
+            // =========================
+            // MOVE IN
+            // =========================
+            MassetTrans::create([
+                'cjnstrans' => 'MoveIn',
+                'cnotrans'  => $cnotrans,
+                'ckode'     => $assetAsal->ckode,
+                'ngrpid'    => $assetAsal->nidsubkat,
+                'cnama'     => $assetAsal->cnama,
+                'nlokasi'   => $data['niddept_tujuan'],
+                'nqty'      => $data['qty'],
+                'ccatatan'  => $data['ccatatan'],
+                'dtrans'    => now(),
+            ]);
         });
     }
-
     private static function generateNoTransDispose(): string
     {
         $periode = now()->format('ym');
@@ -482,16 +464,15 @@ class AssetService
 
         return 'DP/'.$periode.'-'.str_pad($urut, 4, '0', STR_PAD_LEFT);
     }
-
     private static function generateNoTransMove(): string
     {
         $periode = now()->format('ym');
 
         $urut = DB::table('masset_trans')
-            ->where('cjnstrans', 'Move')
+            ->whereIn('cjnstrans', ['MoveIn','MoveOut'])
             ->whereRaw("DATE_FORMAT(dtrans,'%y%m') = ?", [$periode])
-            ->lockForUpdate() // 🔒 biar aman kalau concurrent
-            ->count() + 1;
+            ->distinct('cnotrans') // 🔥 INI KUNCI
+            ->count('cnotrans') + 1;
 
         return 'MV/'.$periode.'-'.str_pad($urut, 4, '0', STR_PAD_LEFT);
     }

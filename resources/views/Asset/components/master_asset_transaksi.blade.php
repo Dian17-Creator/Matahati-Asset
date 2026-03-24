@@ -4,10 +4,11 @@
     <div class="d-flex gap-2 flex-wrap">
 
         {{-- Filter Jenis --}}
-        <select id="filterJenisTransaksi" class="form-select form-select-sm" style="width: 130px;">
+        <select id="filterJenisTransaksi" class="form-select form-select-sm" style="width: 155px;">
             <option value="">Semua Jenis</option>
             <option value="Penambahan">Penambahan</option>
-            <option value="Mutasi">Mutasi</option>
+            <option value="MoveIn">Mutasi Masuk</option>
+            <option value="MoveOut">Mutasi Keluar</option>
             <option value="Perbaikan Masuk">Perbaikan Masuk</option>
             <option value="Perbaikan Selesai">Perbaikan Selesai</option>
             <option value="Pemusnahan">Pemusnahan</option>
