@@ -526,52 +526,69 @@ class AssetController extends Controller
             return back()->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
-
     public function mutasi(Request $request)
     {
-        // =========================
-        // MUTASI QR
-        // =========================
-        if ($request->jenis_asset === 'QR') {
+        try {
 
-            $validated = $request->validate([
-                'kode_asset_qr' => 'required|integer|exists:masset_qr,nid',
-                'niddept_tujuan' => 'required|exists:mdepartment,nid',
-                'ccatatan'      => 'nullable|string|max:255',
+            // =========================
+            // MUTASI QR
+            // =========================
+            if ($request->jenis_asset === 'QR') {
+
+                $validated = $request->validate([
+                    'kode_asset_qr'   => 'required|integer|exists:masset_qr,nid',
+                    'niddept_tujuan'  => 'required|exists:mdepartment,nid',
+                    'ccatatan'        => 'nullable|string|max:255',
+                ]);
+
+                AssetService::mutasiQr([
+                    'nid'             => $validated['kode_asset_qr'],
+                    'niddept_tujuan'  => $validated['niddept_tujuan'],
+                    'ccatatan'        => $validated['ccatatan'] ?? null,
+                ]);
+
+                // =========================
+                // MUTASI NON QR
+                // =========================
+            } elseif ($request->jenis_asset === 'NON_QR') {
+
+                $validated = $request->validate([
+                    'kode_asset_nonqr' => 'required|string|exists:masset_noqr,ckode',
+                    'niddept_asal'     => 'required|exists:mdepartment,nid',
+                    'niddept_tujuan'   => 'required|exists:mdepartment,nid',
+                    'qty'              => 'required|integer|min:1',
+                    'ccatatan'         => 'nullable|string|max:255',
+                ]);
+
+                // 🚫 prevent mutasi ke dept yang sama
+                if ($validated['niddept_asal'] == $validated['niddept_tujuan']) {
+                    return back()->withErrors('Departemen asal dan tujuan tidak boleh sama');
+                }
+
+                AssetService::mutasiNonQr([
+                    'ckode'          => $validated['kode_asset_nonqr'],
+                    'niddept_asal'   => $validated['niddept_asal'],
+                    'niddept_tujuan' => $validated['niddept_tujuan'],
+                    'qty'            => (int) $validated['qty'],
+                    'ccatatan'       => $validated['ccatatan'] ?? null,
+                ]);
+
+            } else {
+                return back()->withErrors('Jenis asset tidak valid');
+            }
+
+            return back()->with('success', 'Mutasi asset berhasil disimpan');
+
+        } catch (\Throwable $e) {
+
+            // 🔍 optional: log error biar gampang tracking
+            \Log::error('Error mutasi asset', [
+                'message' => $e->getMessage(),
             ]);
 
-            AssetService::mutasiQr([
-                'nid'           => $validated['kode_asset_qr'],
-                'niddept_tujuan' => $validated['niddept_tujuan'],
-                'ccatatan'      => $validated['ccatatan'] ?? null,
-            ]);
+            return back()->withErrors($e->getMessage());
         }
-
-        // =========================
-        // MUTASI NON QR
-        // =========================
-        if ($request->jenis_asset === 'NON_QR') {
-
-            $validated = $request->validate([
-                'kode_asset_nonqr' => 'required|string|exists:masset_noqr,ckode',
-                'niddept_asal'     => 'required|exists:mdepartment,nid',
-                'niddept_tujuan'   => 'required|exists:mdepartment,nid',
-                'qty'              => 'required|integer|min:1',
-                'ccatatan'         => 'nullable|string|max:255',
-            ]);
-
-            AssetService::mutasiNonQr([
-                'ckode'          => $validated['kode_asset_nonqr'],
-                'niddept_asal'   => $validated['niddept_asal'],   // 🔑 WAJIB
-                'niddept_tujuan' => $validated['niddept_tujuan'],
-                'qty'            => (int) $validated['qty'],
-                'ccatatan'       => $validated['ccatatan'] ?? null,
-            ]);
-        }
-
-        return back()->with('success', 'Mutasi asset berhasil disimpan');
     }
-
     public function getAssetByStatus(Request $request): JsonResponse
     {
         $status = $request->status;

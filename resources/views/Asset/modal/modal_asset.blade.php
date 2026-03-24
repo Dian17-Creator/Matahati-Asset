@@ -78,6 +78,7 @@
                     {{-- FORM NON QR --}}
                     {{-- ================= --}}
                     <div id="formNonQR" style="display:none">
+                        <input type="hidden" name="niddept" id="niddeptNonQr">
 
                         {{-- KODE ASSET --}}
                         <div class="mb-2">
@@ -86,8 +87,10 @@
                                 <option value="">-- Pilih Kode Asset --</option>
                                 @foreach ($assetDropdown as $a)
                                     @if ($a['jenis'] === 'NON_QR')
-                                        <option value="{{ $a['kode'] }}">
-                                            {{ $a['kode'] }} — {{ $a['nama'] }}
+                                        <option value="{{ $a['kode'] }}" data-niddept="{{ $a['niddept'] }}"
+                                            data-lokasi="{{ $a['lokasi'] }}" data-stok="{{ $a['qty'] }}">
+                                            {{ $a['kode'] }} — {{ $a['nama'] }} ({{ $a['lokasi'] }} | Stok:
+                                            {{ $a['qty'] }})
                                         </option>
                                     @endif
                                 @endforeach
@@ -157,9 +160,7 @@
     </div>
 </div>
 
-{{-- ================= --}}
 {{-- JAVASCRIPT --}}
-{{-- ================= --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
@@ -167,6 +168,11 @@
         const formQR = document.getElementById('formQR');
         const formNonQR = document.getElementById('formNonQR');
         const formCommon = document.getElementById('formCommon');
+
+        // 🔥 TAMBAHAN WAJIB
+        const selectNonQr = document.querySelector('[name="ckode_asset_nonqr"]');
+        const inputDept = document.getElementById('niddeptNonQr');
+        const form = document.querySelector('#modalAssetTrans form');
 
         jenis.addEventListener('change', function() {
 
@@ -184,5 +190,28 @@
                 formCommon.style.display = 'block';
             }
         });
+
+        // 🔥 FIX 1: isi saat change
+        if (selectNonQr && inputDept) {
+            selectNonQr.addEventListener('change', function() {
+                const selected = this.options[this.selectedIndex];
+
+                inputDept.value = selected.dataset.niddept || '';
+
+                console.log('SET NIDDEPT (CHANGE):', inputDept.value);
+            });
+        }
+
+        // 🔥 FIX 2: safety saat submit (WAJIB)
+        if (form && selectNonQr && inputDept) {
+            form.addEventListener('submit', function() {
+                const selected = selectNonQr.options[selectNonQr.selectedIndex];
+
+                inputDept.value = selected?.dataset?.niddept || '';
+
+                console.log('SET NIDDEPT (SUBMIT):', inputDept.value);
+            });
+        }
+
     });
 </script>

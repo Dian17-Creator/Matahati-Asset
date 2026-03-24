@@ -27,16 +27,18 @@
 
                     $badgeClass = match ($jenis) {
                         'add' => 'bg-success',
-                        'move' => 'bg-info',
+                        'movein' => 'bg-success', // 🟢 masuk
+                        'moveout' => 'bg-danger', // 🔴 keluar
                         'serviceout' => 'bg-primary',
                         'servicein' => 'bg-warning text-dark',
-                        'dispose' => 'bg-danger',
+                        'dispose' => 'bg-dark',
                         default => 'bg-secondary',
                     };
 
                     $labelJenis = match ($jenis) {
                         'add' => 'Penambahan',
-                        'move' => 'Mutasi',
+                        'movein' => 'Mutasi Masuk',
+                        'moveout' => 'Mutasi Keluar',
                         'serviceout' => 'Perbaikan Selesai',
                         'servicein' => 'Perbaikan Masuk',
                         'dispose' => 'Pemusnahan',

@@ -8,33 +8,30 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class MassetTrans extends Model
 {
     use HasFactory;
-
     protected $table = 'masset_trans';
     protected $primaryKey = 'nid';
     public $timestamps = false;
-
     protected $fillable = [
-        'ngrpid',        // sub kategori
-        'cjnstrans',     // Add | Move | ServiceOut | ServiceIn | Dispose
-        'dtrans',        // tanggal transaksi
-        'cnotrans',      // nomor transaksi
-        'ckode',         // kode asset
-        'cnama',         // nama asset
-        'nlokasi',       // lokasi / department
+        'ngrpid',
+        'cjnstrans',     // Add | MoveIn | MoveOut | ServiceOut | ServiceIn | Dispose
+        'dtrans',
+        'cnotrans',
+        'ckode',
+        'cnama',
+        'nlokasi',
 
-        'dbeli',         // tanggal beli
-        'cmerk',         // merk
-        'dgaransi',      // tanggal garansi
+        'dbeli',
+        'cmerk',
+        'dgaransi',
 
-        'nqty',          // qty transaksi
-        'nqtyselesai',   // qty selesai (service / dispose)
-        'nhrgbeli',      // harga beli
+        'nqty',
+        'nqtyselesai',
+        'nhrgbeli',
 
-        'ccatatan',      // catatan
-        'dreffoto',      // foto
-        'creftrans',     // referensi transaksi (parent)
+        'ccatatan',
+        'dreffoto',
+        'creftrans',
     ];
-
     protected $casts = [
         'dtrans'       => 'date',
         'dbeli'        => 'date',
@@ -43,13 +40,6 @@ class MassetTrans extends Model
         'nqtyselesai'  => 'integer',
         'nhrgbeli'     => 'decimal:2',
     ];
-
-    /**
-     * =========================
-     * RELATIONS
-     * =========================
-     */
-
     // 🔗 Sub Kategori
     public function subKategori()
     {
@@ -59,7 +49,6 @@ class MassetTrans extends Model
             'nid'
         );
     }
-
     // 🔗 Department / Lokasi
     public function department()
     {
@@ -69,13 +58,6 @@ class MassetTrans extends Model
             'nid'
         );
     }
-
-    /**
-     * =========================
-     * HELPERS (OPTIONAL TAPI KUAT)
-     * =========================
-     */
-
     // apakah transaksi sudah selesai
     public function isSelesai(): bool
     {
@@ -85,7 +67,6 @@ class MassetTrans extends Model
 
         return abs($this->nqtyselesai) >= abs($this->nqty);
     }
-
     // relasi ke transaksi referensi (self join)
     public function refTrans()
     {
