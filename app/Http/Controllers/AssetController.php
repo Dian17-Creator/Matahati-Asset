@@ -145,7 +145,8 @@ class AssetController extends Controller
             ->orderBy('cqr')
             ->get();
 
-        $assetNonQrPemusnahan = MassetNoQr::where('nqty', '>', 0)
+        $assetNonQrPemusnahan = MassetNoQr::with('department')
+            ->where('nqty', '>', 0)
             ->orderBy('ckode')
             ->get();
 
@@ -231,7 +232,6 @@ class AssetController extends Controller
         return redirect()->route('asset.index')
             ->with('success', 'Kategori berhasil ditambahkan');
     }
-
     /**
      * Simpan Sub Kategori
      */
@@ -255,7 +255,6 @@ class AssetController extends Controller
         return redirect()->route('asset.index')
             ->with('success', 'Sub Kategori berhasil ditambahkan');
     }
-
     public function updateKategori(Request $request, $id)
     {
         $request->validate([
@@ -271,7 +270,6 @@ class AssetController extends Controller
         return redirect()->route('asset.index')
             ->with('success', 'Kategori berhasil diupdate');
     }
-
     public function deleteKategori($id)
     {
         // optional safety check
@@ -284,7 +282,6 @@ class AssetController extends Controller
         return redirect()->route('asset.index')
             ->with('success', 'Kategori berhasil dihapus');
     }
-
     public function updateSubKategori(Request $request, $id)
     {
         $request->validate([
@@ -304,7 +301,6 @@ class AssetController extends Controller
         return redirect()->route('asset.index')
             ->with('success', 'Sub Kategori berhasil diupdate');
     }
-
     public function deleteSubKategori($id)
     {
         // optional safety check
@@ -320,13 +316,22 @@ class AssetController extends Controller
         return redirect()->route('asset.index')
             ->with('success', 'Sub Kategori berhasil dihapus');
     }
-
     public function pemusnahan(Request $request)
     {
+        Log::info('=== START PEMUSNAHAN CONTROLLER ===');
+        Log::info('REQUEST MASUK:', $request->all());
+
         if ($request->jenis_asset === 'QR') {
+
+            Log::info('JENIS: QR');
+
             $request->validate([
                 'kode_asset_qr' => 'required|integer|exists:masset_qr,nid',
                 'ccatatan' => 'nullable|string|max:100',
+            ]);
+
+            Log::info('DATA QR VALID:', [
+                'nid' => $request->kode_asset_qr
             ]);
 
             AssetService::pemusnahanQr([
@@ -336,22 +341,40 @@ class AssetController extends Controller
         }
 
         if ($request->jenis_asset === 'NON_QR') {
+
+            Log::info('JENIS: NON QR');
+
             $request->validate([
-                'kode_asset_nonqr' => 'required|string|exists:masset_noqr,ckode',
+                'kode_asset_nonqr' => 'required',
                 'qty' => 'required|integer|min:1',
                 'ccatatan' => 'nullable|string|max:100',
             ]);
 
+            Log::info('VALUE DROPDOWN:', [
+                'raw' => $request->kode_asset_nonqr
+            ]);
+
+            // 🔥 PARSE
+            [$ckode, $niddept] = explode('|', $request->kode_asset_nonqr);
+
+            Log::info('HASIL PARSE:', [
+                'ckode' => $ckode,
+                'niddept' => $niddept,
+                'qty' => $request->qty
+            ]);
+
             AssetService::pemusnahanNonQr([
-                'ckode' => $request->kode_asset_nonqr,
-                'qty' => $request->qty,
+                'ckode'   => $ckode,
+                'niddept' => $niddept,
+                'qty'     => $request->qty,
                 'ccatatan' => $request->ccatatan,
             ]);
         }
 
+        Log::info('=== END PEMUSNAHAN CONTROLLER ===');
+
         return back()->with('success', 'Asset berhasil dimusnahkan');
     }
-
     public function perbaikanQr(Request $request)
     {
         $status = $request->cstatus;
