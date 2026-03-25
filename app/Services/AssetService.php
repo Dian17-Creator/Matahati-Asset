@@ -171,22 +171,38 @@ class AssetService
     {
         return DB::transaction(function () use ($data) {
 
+            Log::info('=== START PEMUSNAHAN NON QR ===', $data);
+
             $row = DB::table('masset_noqr')
                 ->where('ckode', $data['ckode'])
+                ->where('niddept', $data['niddept'])
                 ->lockForUpdate()
                 ->first();
 
+            Log::info('DATA DITEMUKAN:', (array) $row);
+
             if (! $row) {
+                Log::error('❌ Asset tidak ditemukan', $data);
                 throw new \Exception('Asset Non QR tidak ditemukan');
             }
 
             if ($row->nqty < $data['qty']) {
+                Log::error('❌ Qty melebihi stok', [
+                    'stok' => $row->nqty,
+                    'request_qty' => $data['qty']
+                ]);
                 throw new \Exception('Qty melebihi stok');
             }
 
-            // ======================
-            // INSERT TRANSAKSI (DISPOSE)
-            // ======================
+            $newQty = $row->nqty - $data['qty'];
+
+            Log::info('HITUNG STOK:', [
+                'stok_awal' => $row->nqty,
+                'qty_keluar' => $data['qty'],
+                'stok_akhir' => $newQty
+            ]);
+
+            // INSERT TRANSAKSI
             DB::table('masset_trans')->insert([
                 'ngrpid'    => $row->nidsubkat,
                 'cjnstrans' => 'Dispose',
@@ -199,19 +215,25 @@ class AssetService
 
                 'nqty'      => -1 * (int) $data['qty'],
                 'ccatatan'  => $data['ccatatan'] ?? $row->ccatatan,
-                // 'fdone'     => 1,
             ]);
 
-            // ======================
-            // UPDATE STOK NON QR
-            // ======================
-            DB::table('masset_noqr')
+            Log::info('✅ INSERT TRANSAKSI BERHASIL');
+
+            // UPDATE STOK
+            $updated = DB::table('masset_noqr')
                 ->where('ckode', $data['ckode'])
+                ->where('niddept', $data['niddept'])
                 ->update([
-                    'nqty'     => $row->nqty - $data['qty'],
+                    'nqty'     => $newQty,
                     'ccatatan' => $data['ccatatan'] ?? $row->ccatatan,
                     'dtrans'   => now(),
                 ]);
+
+            Log::info('UPDATE RESULT:', [
+                'affected_row' => $updated
+            ]);
+
+            Log::info('=== END PEMUSNAHAN NON QR ===');
 
             return true;
         });

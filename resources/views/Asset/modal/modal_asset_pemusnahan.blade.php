@@ -44,8 +44,10 @@
                             <select name="kode_asset_nonqr" class="form-select">
                                 <option value="">-- Pilih Asset Non QR --</option>
                                 @foreach ($assetNonQrPemusnahan as $nonqr)
-                                    <option value="{{ $nonqr->ckode }}">
-                                        {{ $nonqr->ckode }} - {{ $nonqr->cnama }} (Stok: {{ $nonqr->nqty }})
+                                    <option value="{{ $nonqr->ckode }}|{{ $nonqr->niddept }}">
+                                        ({{ optional($nonqr->department)->cname ?? '-' }})
+                                        {{ $nonqr->ckode }} - {{ $nonqr->cnama }}
+                                        (Stok: {{ $nonqr->nqty }})
                                     </option>
                                 @endforeach
                             </select>
