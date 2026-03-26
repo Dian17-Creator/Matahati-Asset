@@ -183,7 +183,7 @@ class MassetTransController extends Controller
                     if ($request->hasFile('foto')) {
                         $file = $request->file('foto');
                         $namaFoto = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
-                        $file->move(public_path('uploads/transaksi'), $namaFoto);
+                        $file->move(public_path('uploads/asset'), $namaFoto);
 
                         Log::info('UPLOAD FOTO NON QR', ['file' => $namaFoto]);
                     }
