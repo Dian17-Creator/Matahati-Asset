@@ -101,9 +101,9 @@
                     <div class="nav-divider"></div>
 
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('Asset.history') ? 'fw-bold text-white' : '' }}"
-                            href="{{ route('Asset.history') }}">
-                            RIWAYAT
+                        <a class="nav-link {{ request()->routeIs('kartu.stok') ? 'fw-bold text-white' : '' }}"
+                            href="{{ route('kartu.stok') }}">
+                            KARTU STOK
                         </a>
                     </li>
 
@@ -143,9 +143,9 @@
                             Home
                         </a>
 
-                        <a href="{{ route('asset.index') }}"
-                            class="menu-item {{ request()->routeIs('backoffice.index') ? 'active' : '' }}">
-                            Riwayat
+                        <a href="{{ route('kartu.stok') }}"
+                            class="menu-item {{ request()->routeIs('kartu.stok') ? 'active' : '' }}">
+                            Kartu Stok
                         </a>
 
                         <form action="{{ route('logout') }}" method="POST" class="w-100">

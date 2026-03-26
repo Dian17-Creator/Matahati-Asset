@@ -6,6 +6,7 @@ use App\Http\Controllers\AssetController;
 use App\Http\Controllers\MsatuanController;
 use App\Http\Controllers\MassetTransController;
 use App\Http\Controllers\HistoryTransactionController;
+use App\Http\Controllers\StockCardController;
 
 // AUTH
 Route::get('/', fn () => redirect('/login'));
@@ -75,4 +76,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('Asset.history');
     Route::get('/asset/transaksi/ajax', [MassetTransController::class, 'transaksiAjax'])
     ->name('asset.transaksi.ajax');
+
+    //Kartu Stok Controller
+    Route::get('/kartu-stok', [StockCardController::class, 'index'])
+        ->name('kartu.stok');
 });
