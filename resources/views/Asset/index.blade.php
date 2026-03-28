@@ -10,12 +10,12 @@
         <div class="row">
 
             {{-- MASTER SATUAN --}}
-            <div class="col-md-6 mb-4">
+            <div class="col-md-6">
                 @include('Asset.components.master_satuan')
             </div>
 
             {{-- MASTER KATEGORI --}}
-            <div class="col-md-6 mb-4">
+            <div class="col-md-6">
                 @include('Asset.components.master_kategori')
             </div>
 
