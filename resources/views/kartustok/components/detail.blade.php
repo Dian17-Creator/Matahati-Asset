@@ -1,4 +1,4 @@
-@if (isset($trans) && count($trans) > 0)
+@if (isset($kode))
 
     <div class="card mt-4">
         <div class="card-header text-white" style="background-color: #B63352;">
@@ -7,7 +7,7 @@
 
         <div class="card-body">
 
-            <div class="mb-3">
+            <div class="mb-2">
                 <strong>Kode :</strong> {{ $kode ?? '-' }} <br>
                 <strong>Nama Barang :</strong> {{ $nama_barang ?? '-' }} <br>
                 <strong>Periode :</strong> {{ $start }} s/d {{ $end }}
@@ -15,7 +15,7 @@
 
             <div class="table-responsive">
                 <table class="table table-bordered table-sm">
-                    <thead class="table-light text-center">
+                    <thead class="table-dark text-center">
                         <tr>
                             <th>No</th>
                             <th>Tanggal</th>
@@ -23,15 +23,15 @@
                             <th>Keterangan</th>
                             <th>Masuk</th>
                             <th>Keluar</th>
-                            <th>Saldo</th>
+                            <th>Stok Akhir</th>
                         </tr>
                     </thead>
                     <tbody>
 
-                        <tr style="background:#f8f9fa;">
+                        {{-- <tr style="background:#f8f9fa;">
                             <td colspan="6"><b>Stok Awal</b></td>
                             <td class="text-center"><b>{{ $stok_awal }}</b></td>
-                        </tr>
+                        </tr> --}}
 
                         @foreach ($trans as $i => $t)
                             <tr>

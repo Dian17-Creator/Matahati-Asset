@@ -57,7 +57,7 @@
     {{-- HEADER --}}
     <div class="card-header d-flex justify-content-between align-items-center"
         style="background-color: #B63352; color: white;">
-        <span>Transaksi Asset</span>
+        <b>Transaksi Asset</b>
     </div>
 
     {{-- BODY --}}

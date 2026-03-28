@@ -1,5 +1,5 @@
 <table class="table table-bordered table-sm align-middle">
-    <thead class="text-center">
+    <thead class="table-dark text-center">
         <tr>
             <th>Kode</th>
             <th>Nama</th>

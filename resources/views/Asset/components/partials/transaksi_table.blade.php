@@ -1,6 +1,6 @@
 <div class="table-scroll">
     <table id="assetTable" class="table table-bordered table-sm">
-        <thead class="text-center">
+        <thead class="table-dark text-center">
             <tr>
                 <th class="sortable" data-sort="lokasi">Lokasi ↕</th>
                 <th class="sortable" data-sort="tanggal">Tanggal Transaksi ↕</th>
