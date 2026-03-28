@@ -1,6 +1,6 @@
 <div class="table-scroll">
     <table class="table table-bordered">
-        <thead class="text-center">
+        <thead class="table-dark text-center">
             <tr>
                 <th>Lokasi</th>
                 <th>Kategori</th>

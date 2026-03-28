@@ -2,7 +2,7 @@
     <div class="card-header d-flex justify-content-between align-items-center"
         style="background-color: #B63352; color: white;">
 
-        <span>Asset QR</span>
+        <b>Asset QR</b>
 
         {{-- <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAssetQr">
             + Tambah Asset QR

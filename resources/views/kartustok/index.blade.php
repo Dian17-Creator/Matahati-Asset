@@ -45,7 +45,7 @@
                 {{-- 📊 TABLE --}}
                 <div class="table-responsive">
                     <table class="table table-bordered">
-                        <thead>
+                        <thead class="table-dark text-center">
                             <tr style="text-align: center; ">
                                 <th>Kode</th>
                                 <th>Nama Produk</th>

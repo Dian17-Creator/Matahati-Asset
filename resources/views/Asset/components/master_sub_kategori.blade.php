@@ -2,7 +2,7 @@
     <div class="card-header d-flex justify-content-between align-items-center"
         style="background-color: #B63352; color: white;">
 
-        <span>Master Sub Kategori</span>
+        <b>Master Sub Kategori</b>
 
         <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalSubKategori"
             onclick="openCreateSubKategori()">
