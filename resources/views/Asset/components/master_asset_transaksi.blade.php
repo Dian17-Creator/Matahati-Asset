@@ -147,21 +147,6 @@
                         loadTransaksi(1);
                     });
                 });
-
-            // update icon
-            document.querySelectorAll('#transaksi-wrapper th.sortable')
-                .forEach(th => {
-                    const key = th.dataset.sort;
-
-                    let label = th.innerText.split(' ')[0];
-                    let icon = '↕';
-
-                    if (key === window.currentSort) {
-                        icon = window.currentDirection === 'asc' ? '▲' : '▼';
-                    }
-
-                    th.innerHTML = `${label} ${icon}`;
-                });
         }
 
         // =========================

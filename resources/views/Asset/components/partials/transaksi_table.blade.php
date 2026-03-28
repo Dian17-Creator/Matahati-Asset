@@ -2,14 +2,31 @@
     <table id="assetTable" class="table table-bordered table-sm">
         <thead class="table-dark text-center">
             <tr>
-                <th class="sortable" data-sort="lokasi">Lokasi ↕</th>
-                <th class="sortable" data-sort="tanggal">Tanggal Transaksi ↕</th>
+                <th class="sortable" data-sort="lokasi">
+                    Lokasi <i class="bi bi-arrow-down-up ms-1"></i>
+                </th>
+
+                <th class="sortable" data-sort="tanggal">
+                    Tanggal Transaksi <i class="bi bi-arrow-down-up ms-1"></i>
+                </th>
+
                 <th>Nomor Transaksi</th>
-                <th class="sortable" data-sort="jenis">Jenis Transaksi ↕</th>
+
+                <th class="sortable" data-sort="jenis">
+                    Jenis Transaksi <i class="bi bi-arrow-down-up ms-1"></i>
+                </th>
+
                 <th>Kategori</th>
                 <th>Sub Kategori</th>
-                <th class="sortable" data-sort="kode">Kode Asset ↕</th>
-                <th class="sortable" data-sort="nama">Nama Asset ↕</th>
+
+                <th class="sortable" data-sort="kode">
+                    Kode Asset <i class="bi bi-arrow-down-up ms-1"></i>
+                </th>
+
+                <th class="sortable" data-sort="nama">
+                    Nama Asset <i class="bi bi-arrow-down-up ms-1"></i>
+                </th>
+
                 <th>Merk</th>
                 <th>Qty</th>
                 <th>Tgl Beli</th>
@@ -27,8 +44,8 @@
 
                     $badgeClass = match ($jenis) {
                         'add' => 'bg-success',
-                        'movein' => 'bg-success', // 🟢 masuk
-                        'moveout' => 'bg-danger', // 🔴 keluar
+                        'movein' => 'bg-success',
+                        'moveout' => 'bg-danger',
                         'serviceout' => 'bg-primary',
                         'servicein' => 'bg-warning text-dark',
                         'dispose' => 'bg-dark',
@@ -125,6 +142,11 @@
     th.sortable {
         cursor: pointer;
         user-select: none;
+    }
+
+    th.sortable i {
+        font-size: 12px;
+        color: rgb(255, 255, 255);
     }
 
     .table-scroll {
