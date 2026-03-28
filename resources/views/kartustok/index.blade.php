@@ -34,7 +34,7 @@
         {{-- HEADER --}}
         <div class="card-header d-flex justify-content-between align-items-center"
             style="background-color: #B63352; color: white;">
-            <span>Kartu Stok</span>
+            <b>Kartu Stok</b>
         </div>
 
         {{-- BODY --}}
@@ -55,6 +55,7 @@
                                 <th>Keluar</th>
                                 <th>Akhir</th>
                                 <th>Min Stok</th>
+                                <th>Detail</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -79,11 +80,18 @@
                                     <td style="text-align:center; font-weight:bold;">
                                         {{ number_format($row->akhir) }}
                                     </td>
+
                                     <td style="text-align: center;">{{ $row->min_stok }}</td>
+                                    <td class="text-center">
+                                        <a href="?start_date={{ $start }}&end_date={{ $end }}&kode={{ $row->kode_produk }}"
+                                            class="btn btn-sm btn-success">
+                                            Lihat
+                                        </a>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" style="text-align:center;">
+                                    <td colspan="9" style="text-align:center;">
                                         Tidak ada data
                                     </td>
                                 </tr>
@@ -96,6 +104,8 @@
 
         </div>
     </div>
+
+    @include('kartustok.components.detail')
 
     {{-- <script>
         function syncLogDate() {
