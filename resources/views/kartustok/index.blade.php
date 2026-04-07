@@ -14,13 +14,23 @@
     {{-- 🔍 FILTER --}}
     <form method="GET" class="mb-3">
         <div style="display:flex; gap:10px; align-items:center;">
+
+            <select name="lokasi" class="form-control">
+                <option value="">Semua Lokasi</option>
+                @foreach ($lokasiList as $lok)
+                    <option value="{{ $lok->nid }}" {{ request('lokasi') == $lok->nid ? 'selected' : '' }}>
+                        {{ $lok->cname }}
+                    </option>
+                @endforeach
+            </select>
+
             <input type="date" name="start_date" value="{{ $start }}" class="form-control">
 
             {{-- <div class="col-auto">
-                            <div class="date-sync-icon" onclick="syncLogDate()" title="Samakan tanggal">
-                                <i class="bi bi-arrow-left-right"></i>
-                            </div>
-                        </div> --}}
+                <div class="date-sync-icon" onclick="syncLogDate()" title="Samakan tanggal">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+            </div> --}}
 
             <input type="date" name="end_date" value="{{ $end }}" class="form-control">
 
@@ -107,7 +117,7 @@
 
     @include('kartustok.components.detail')
 
-    {{-- <script>
+    <script>
         function syncLogDate() {
             const start = document.getElementById("start_date");
             const end = document.getElementById("end_date");
@@ -116,5 +126,5 @@
                 end.value = start.value;
             }
         }
-    </script> --}}
+    </script>
 @endsection

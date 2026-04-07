@@ -9,43 +9,52 @@ class StockCardController extends Controller
 {
     public function index(Request $request)
     {
-        $start = $request->start_date ?? now()->startOfMonth()->toDateString();
-        $end   = $request->end_date ?? now()->endOfMonth()->toDateString();
-        $kode  = $request->kode;
+        $start  = $request->start_date ?? now()->startOfMonth()->toDateString();
+        $end    = $request->end_date ?? now()->endOfMonth()->toDateString();
+        $kode   = $request->kode;
+        $lokasi = $request->lokasi; // 🔥 NEW
 
         // 🔥 MASTER
         $master = DB::raw("
-            (
+        (
+            SELECT
+                kode,
+                MAX(cnama) as cnama,
+                MAX(satuan) as satuan,
+                MAX(min_stok) as min_stok
+            FROM (
                 SELECT
-                    kode,
-                    MAX(cnama) as cnama,
-                    MAX(satuan) as satuan,
-                    MAX(min_stok) as min_stok
-                FROM (
-                    SELECT
-                        cqr as kode,
-                        cnama,
-                        'Unit' as satuan,
-                        1 as min_stok
-                    FROM masset_qr
+                    cqr as kode,
+                    cnama,
+                    'Unit' as satuan,
+                    1 as min_stok
+                FROM masset_qr
 
-                    UNION ALL
+                UNION ALL
 
-                    SELECT
-                        ckode as kode,
-                        cnama,
-                        csatuan as satuan,
-                        COALESCE(nminstok,0) as min_stok
-                    FROM masset_noqr
-                ) x
-                GROUP BY kode
-            ) as master
-        ");
+                SELECT
+                    ckode as kode,
+                    cnama,
+                    csatuan as satuan,
+                    COALESCE(nminstok,0) as min_stok
+                FROM masset_noqr
+            ) x
+            GROUP BY kode
+        ) as master
+    ");
 
+        // =====================================
         // 🔥 SUMMARY
-        $data = DB::table($master)
-            ->leftJoin('masset_trans as t', 'master.kode', '=', 't.ckode')
+        // =====================================
+        $query = DB::table($master)
+            ->leftJoin('masset_trans as t', 'master.kode', '=', 't.ckode');
 
+        // 🔥 FILTER LOKASI
+        if ($lokasi) {
+            $query->where('t.nlokasi', $lokasi);
+        }
+
+        $data = $query
             ->selectRaw("
                 master.kode as kode_produk,
                 master.cnama as nama_produk,
@@ -53,18 +62,34 @@ class StockCardController extends Controller
                 master.min_stok,
 
                 COALESCE(SUM(
-                    CASE WHEN t.dtrans < ? THEN COALESCE(t.nqty,0) ELSE 0 END
+                    CASE
+                        WHEN t.dtrans < ?
+                        " . ($lokasi ? "AND t.nlokasi = {$lokasi}" : "") . "
+                        THEN COALESCE(t.nqty,0)
+                        ELSE 0
+                    END
                 ),0) as awal,
 
                 COALESCE(SUM(
-                    CASE WHEN t.dtrans BETWEEN ? AND ? AND t.nqty > 0 THEN t.nqty ELSE 0 END
+                    CASE
+                        WHEN t.dtrans BETWEEN ? AND ?
+                        AND t.nqty > 0
+                        " . ($lokasi ? "AND t.nlokasi = {$lokasi}" : "") . "
+                        THEN t.nqty
+                        ELSE 0
+                    END
                 ),0) as masuk,
 
                 COALESCE(SUM(
-                    CASE WHEN t.dtrans BETWEEN ? AND ? AND t.nqty < 0 THEN ABS(t.nqty) ELSE 0 END
+                    CASE
+                        WHEN t.dtrans BETWEEN ? AND ?
+                        AND t.nqty < 0
+                        " . ($lokasi ? "AND t.nlokasi = {$lokasi}" : "") . "
+                        THEN ABS(t.nqty)
+                        ELSE 0
+                    END
                 ),0) as keluar
             ", [$start, $start, $end, $start, $end])
-
             ->groupBy(
                 'master.kode',
                 'master.cnama',
@@ -98,25 +123,35 @@ class StockCardController extends Controller
             $barang = collect($data)->firstWhere('kode_produk', $kode);
             $nama_barang = $barang->nama_produk ?? '-';
 
-            // stok awal
-            $stok_awal = DB::table('masset_trans')
+            // 🔥 stok awal (pakai lokasi juga)
+            $stokAwalQuery = DB::table('masset_trans')
                 ->where('ckode', $kode)
-                ->whereDate('dtrans', '<', $start)
-                ->sum('nqty') ?? 0;
+                ->whereDate('dtrans', '<', $start);
 
-            // transaksi
-            $trans = DB::table('masset_trans')
+            if ($lokasi) {
+                $stokAwalQuery->where('nlokasi', $lokasi);
+            }
+
+            $stok_awal = $stokAwalQuery->sum('nqty') ?? 0;
+
+            // 🔥 transaksi detail
+            $transQuery = DB::table('masset_trans')
                 ->where('ckode', $kode)
-                ->whereBetween('dtrans', [$start, $end])
+                ->whereBetween('dtrans', [$start, $end]);
+
+            if ($lokasi) {
+                $transQuery->where('nlokasi', $lokasi);
+            }
+
+            $trans = $transQuery
                 ->orderBy('dtrans')
                 ->get();
 
-            // running saldo
+            // 🔥 running saldo
             $saldo = $stok_awal;
 
             foreach ($trans as $t) {
 
-                // MASUK / KELUAR
                 if ($t->nqty > 0) {
                     $t->masuk = $t->nqty;
                     $t->keluar = 0;
@@ -129,7 +164,7 @@ class StockCardController extends Controller
 
                 $t->saldo = $saldo;
 
-                // 🔥 MAPPING JENIS
+                // 🔥 mapping jenis
                 $mapJenis = [
                     'Add'        => 'Penambahan',
                     'MoveIn'     => 'Mutasi Masuk',
@@ -142,18 +177,17 @@ class StockCardController extends Controller
                 $jenisRaw = $t->cjnstrans ?? '';
                 $jenis = $mapJenis[$jenisRaw] ?? $jenisRaw;
 
-                // NO TRANS
                 $t->no_trans = $t->cnotrans ?? '-';
 
-                // KETERANGAN
                 $ket = $t->ccatatan ?? '';
-                $t->keterangan = trim($jenis . ' - ' . $ket);
-
-                if ($ket == '') {
-                    $t->keterangan = $jenis;
-                }
+                $t->keterangan = $ket
+                    ? $jenis . ' - ' . $ket
+                    : $jenis;
             }
         }
+
+        // 🔥 ambil list lokasi buat dropdown
+        $lokasiList = DB::table('mdepartment')->get();
 
         return view('kartustok.index', compact(
             'data',
@@ -162,7 +196,53 @@ class StockCardController extends Controller
             'kode',
             'trans',
             'stok_awal',
-            'nama_barang'
+            'nama_barang',
+            'lokasiList', // 🔥 NEW
+            'lokasi'      // 🔥 NEW
         ));
+    }
+
+    public function detail(Request $request)
+    {
+        $kode   = $request->kode;
+        $start  = $request->start_date;
+        $end    = $request->end_date;
+        $lokasi = $request->lokasi;
+
+        // stok awal
+        $stok_awal = DB::table('masset_trans')
+            ->where('ckode', $kode)
+            ->whereDate('dtrans', '<', $start)
+            ->when($lokasi, fn ($q) => $q->where('nlokasi', $lokasi))
+            ->sum('nqty');
+
+        // transaksi
+        $trans = DB::table('masset_trans')
+            ->where('ckode', $kode)
+            ->whereBetween('dtrans', [$start, $end])
+            ->when($lokasi, fn ($q) => $q->where('nlokasi', $lokasi))
+            ->orderBy('dtrans')
+            ->get();
+
+        $saldo = $stok_awal;
+
+        foreach ($trans as $t) {
+            if ($t->nqty > 0) {
+                $t->masuk = $t->nqty;
+                $t->keluar = 0;
+                $saldo += $t->nqty;
+            } else {
+                $t->masuk = 0;
+                $t->keluar = abs($t->nqty);
+                $saldo -= abs($t->nqty);
+            }
+
+            $t->saldo = $saldo;
+        }
+
+        return response()->json([
+            'stok_awal' => $stok_awal,
+            'trans' => $trans
+        ]);
     }
 }
