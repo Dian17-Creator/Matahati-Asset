@@ -28,10 +28,10 @@
                     </thead>
                     <tbody>
 
-                        {{-- <tr style="background:#f8f9fa;">
+                        <tr style="background:#f8f9fa;">
                             <td colspan="6"><b>Stok Awal</b></td>
                             <td class="text-center"><b>{{ $stok_awal }}</b></td>
-                        </tr> --}}
+                        </tr>
 
                         @foreach ($trans as $i => $t)
                             <tr>
