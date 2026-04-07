@@ -12,7 +12,8 @@ class StockCardController extends Controller
         $start  = $request->start_date ?? now()->startOfMonth()->toDateString();
         $end    = $request->end_date ?? now()->endOfMonth()->toDateString();
         $kode   = $request->kode;
-        $lokasi = $request->lokasi; // 🔥 NEW
+        $lokasi = $request->lokasi;
+        $search = $request->search; // 🔥 NEW
 
         // 🔥 MASTER
         $master = DB::raw("
@@ -41,7 +42,7 @@ class StockCardController extends Controller
             ) x
             GROUP BY kode
         ) as master
-    ");
+        ");
 
         // =====================================
         // 🔥 SUMMARY
@@ -54,6 +55,15 @@ class StockCardController extends Controller
             $query->where('t.nlokasi', $lokasi);
         }
 
+        // 🔥 FILTER SEARCH
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('master.kode', 'like', "%{$search}%")
+                  ->orWhere('master.cnama', 'like', "%{$search}%")
+                  ->orWhere('master.satuan', 'like', "%{$search}%");
+            });
+        }
+
         $data = $query
             ->selectRaw("
                 master.kode as kode_produk,
@@ -64,7 +74,6 @@ class StockCardController extends Controller
                 COALESCE(SUM(
                     CASE
                         WHEN t.dtrans < ?
-                        " . ($lokasi ? "AND t.nlokasi = {$lokasi}" : "") . "
                         THEN COALESCE(t.nqty,0)
                         ELSE 0
                     END
@@ -74,7 +83,6 @@ class StockCardController extends Controller
                     CASE
                         WHEN t.dtrans BETWEEN ? AND ?
                         AND t.nqty > 0
-                        " . ($lokasi ? "AND t.nlokasi = {$lokasi}" : "") . "
                         THEN t.nqty
                         ELSE 0
                     END
@@ -84,7 +92,6 @@ class StockCardController extends Controller
                     CASE
                         WHEN t.dtrans BETWEEN ? AND ?
                         AND t.nqty < 0
-                        " . ($lokasi ? "AND t.nlokasi = {$lokasi}" : "") . "
                         THEN ABS(t.nqty)
                         ELSE 0
                     END
@@ -123,7 +130,7 @@ class StockCardController extends Controller
             $barang = collect($data)->firstWhere('kode_produk', $kode);
             $nama_barang = $barang->nama_produk ?? '-';
 
-            // 🔥 stok awal (pakai lokasi juga)
+            // 🔥 stok awal
             $stokAwalQuery = DB::table('masset_trans')
                 ->where('ckode', $kode)
                 ->whereDate('dtrans', '<', $start);
@@ -186,7 +193,7 @@ class StockCardController extends Controller
             }
         }
 
-        // 🔥 ambil list lokasi buat dropdown
+        // 🔥 ambil list lokasi
         $lokasiList = DB::table('mdepartment')->get();
 
         return view('kartustok.index', compact(
@@ -197,8 +204,9 @@ class StockCardController extends Controller
             'trans',
             'stok_awal',
             'nama_barang',
-            'lokasiList', // 🔥 NEW
-            'lokasi'      // 🔥 NEW
+            'lokasiList',
+            'lokasi',
+            'search' // 🔥 NEW
         ));
     }
 
