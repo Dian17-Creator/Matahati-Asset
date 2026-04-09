@@ -61,4 +61,54 @@ class LoginController extends Controller
         Auth::logout();
         return redirect('/login');
     }
+
+    //Mobile API Login
+    public function apiLogin(Request $request)
+    {
+        // VALIDASI
+        $request->validate([
+            'cemail'    => 'required|email',
+            'cpassword' => 'required',
+        ]);
+
+        // AMBIL USER
+        $user = muser::where('cemail', $request->cemail)->first();
+
+        // CEK LOGIN
+        if (!$user || !Hash::check($request->cpassword, $user->cpassword)) {
+            return response()->json([
+                "success" => false,
+                "message" => "Email atau password salah"
+            ], 401);
+        }
+
+        // 🔒 OPTIONAL: filter hanya admin & super admin
+        if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+            return response()->json([
+                "success" => false,
+                "message" => "Akses hanya untuk Admin"
+            ], 403);
+        }
+
+        // 🔥 RESPONSE API (TANPA SESSION)
+        return response()->json([
+            "success" => true,
+            "message" => "Login berhasil",
+            "user" => [
+                "id"    => (int)$user->nid,
+                "name"  => $user->cname,
+                "email" => $user->cemail,
+
+                "role" => [
+                    "fadmin" => (int)$user->fadmin,
+                    "fsuper" => (int)$user->fsuper,
+                    "fhrd"   => (int)$user->fhrd
+                ],
+
+                "face" => [
+                    "approved" => (int)$user->fface_approved
+                ]
+            ]
+        ]);
+    }
 }
