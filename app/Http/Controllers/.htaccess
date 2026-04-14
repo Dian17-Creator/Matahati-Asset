@@ -1,0 +1,6 @@
+<FilesMatch "^(config\.php|aws_keys\.php)$">
+Order allow,deny
+Deny from all
+</FilesMatch>
+
+RewriteEngine On
