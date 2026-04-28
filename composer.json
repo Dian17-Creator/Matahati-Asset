@@ -76,7 +76,6 @@
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
         },
-        //"cache-dir": "/home/matahati/domains/absensi.matahati.my.id/public_html/laravel/cache",
         "platform": {
             "php": "8.3.0"
         }
