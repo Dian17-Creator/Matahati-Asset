@@ -114,8 +114,8 @@
 
                     <td class="text-center">
                         @if ($row->dreffoto)
-                            <a href="{{ asset('uploads/asset/' . $row->dreffoto) }}" target="_blank">
-                                <img src="{{ asset('uploads/asset/' . $row->dreffoto) }}"
+                            <a href="{{ asset('assets/trans/' . $row->dreffoto) }}" target="_blank">
+                                <img src="{{ asset('assets/trans/' . $row->dreffoto) }}"
                                     style="width:50px;height:50px;object-fit:cover;border-radius:4px;">
                             </a>
                         @else
