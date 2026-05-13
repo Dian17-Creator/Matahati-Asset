@@ -1,65 +1,73 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
+<div class="container">
 
-        <div class="d-flex justify-content-center align-items-center mb-4">
-            <h4 class="mb-0">DASHBOARD ASSET</h4>
+    <div class="d-flex justify-content-center align-items-center mb-4">
+        <h4 class="mb-0">DASHBOARD ASSET</h4>
+    </div>
+
+    <div class="row">
+
+        {{-- MASTER SATUAN --}}
+        <div class="col-md-6">
+            @include('Asset.components.master_satuan')
         </div>
 
-        <div class="row">
-
-            {{-- MASTER SATUAN --}}
-            <div class="col-md-6">
-                @include('Asset.components.master_satuan')
-            </div>
-
-            {{-- MASTER KATEGORI --}}
-            <div class="col-md-6">
-                @include('Asset.components.master_kategori')
-            </div>
-
+        {{-- MASTER KATEGORI --}}
+        <div class="col-md-6">
+            @include('Asset.components.master_kategori')
         </div>
-
-        {{-- ================= SUB KATEGORI ================= --}}
-
-        @include('Asset.components.master_sub_kategori')
-
-        @include('Asset.components.master_asset_qr')
-
-        @include('Asset.components.master_asset_nonqr')
-
-        @include('Asset.components.master_asset_transaksi')
 
     </div>
 
-    @include('Asset.modal.modal_satuan')
+    {{-- ================= SUB KATEGORI ================= --}}
 
-    @include('Asset.modal.modal_kategori')
+    @include('Asset.components.master_sub_kategori')
 
-    @include('Asset.modal.modal_sub_kategori')
+    @include('Asset.components.master_asset_qr')
 
-    @include('Asset.modal.modal_asset')
+    @include('Asset.components.master_asset_nonqr')
 
-    @include('Asset.modal.modal_asset_qr')
+    @include('Asset.components.master_asset_transaksi')
 
-    @include('Asset.modal.modal_asset_nonqr')
+    @include('Asset.components.master_asset_reminder')
 
-    @include('Asset.modal.modal_asset_pemusnahan')
+</div>
 
-    @include('Asset.modal.modal_asset_perbaikan')
+@include('Asset.modal.modal_satuan')
 
-    @include('Asset.modal.modal_asset_mutasi')
+@include('Asset.modal.modal_kategori')
 
-    <script>
-        window.routeMsatuanStore = "{{ route('msatuan.store') }}";
-    </script>
+@include('Asset.modal.modal_sub_kategori')
 
-    <script>
-        window.routeGenerateKode = "{{ route('asset.trans.generate') }}";
-    </script>
+@include('Asset.modal.modal_asset')
 
-    <script src="{{ asset('js/asset.js') }}"></script>
+@include('Asset.modal.modal_asset_qr')
 
-    <link rel="stylesheet" href="{{ asset('css/asset.css') }}">
+@include('Asset.modal.modal_asset_nonqr')
+
+@include('Asset.modal.modal_asset_pemusnahan')
+
+@include('Asset.modal.modal_asset_perbaikan')
+
+@include('Asset.modal.modal_asset_mutasi')
+
+@include('Asset.modal.modal_tambah_reminder')
+
+@include('Asset.modal.modal_edit_reminder')
+
+<script>
+    window.routeMsatuanStore = "{{ route('msatuan.store') }}";
+</script>
+
+<script>
+    window.routeGenerateKode = "{{ route('asset.trans.generate') }}";
+</script>
+
+<script src="{{ asset('js/asset.js') }}"></script>
+
+<link rel="stylesheet" href="{{ asset('css/asset.css') }}">
+
+
 @endsection
