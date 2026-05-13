@@ -249,9 +249,12 @@
                                     data.asset_noqr_code;
                             }
 
-                            // tanggal
-                            document.getElementById('edit_reminder_date').value =
-                                data.reminder_date.substring(0, 10);
+                            // tanggal (handle timezone shift)
+                            const dateObj = new Date(data.reminder_date);
+                            const year = dateObj.getFullYear();
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            document.getElementById('edit_reminder_date').value = `${year}-${month}-${day}`;
 
                             // note
                             document.getElementById('edit_note').value =
