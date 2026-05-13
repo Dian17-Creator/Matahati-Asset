@@ -89,8 +89,12 @@
                 btn.addEventListener('click', function() {
                     if (confirm('Apakah Anda yakin ingin menghapus reminder ini?')) {
                         const id = this.dataset.id;
+                        const formData = new FormData();
+                        formData.append('_method', 'DELETE');
+
                         fetch(`{{ url('asset/reminder') }}/${id}`, {
-                                method: 'DELETE',
+                                method: 'POST',
+                                body: formData,
                                 headers: {
                                     'X-Requested-With': 'XMLHttpRequest',
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
