@@ -41,9 +41,9 @@ class AssetController extends Controller
             ->paginate(5, ['*'], 'asset_nonqr_page');
 
         $transaksi = MassetTrans::with([
-                'subKategori.kategori',
-                'department',
-            ])
+            'subKategori.kategori',
+            'department',
+        ])
             ->orderByDesc('ckode')
             ->paginate(5, ['*'], 'transaksi_page')
             ->withQueryString(); // 🔥 WAJIB
@@ -543,7 +543,6 @@ class AssetController extends Controller
             });
 
             return back()->with('success', 'Transaksi perbaikan berhasil disimpan');
-
         } catch (\Throwable $e) {
             Log::error('ERROR PERBAIKAN: ' . $e->getMessage());
             return back()->with('error', 'Gagal: ' . $e->getMessage());
@@ -595,19 +594,13 @@ class AssetController extends Controller
                     'qty'            => (int) $validated['qty'],
                     'ccatatan'       => $validated['ccatatan'] ?? null,
                 ]);
-
             } else {
                 return back()->withErrors('Jenis asset tidak valid');
             }
 
             return back()->with('success', 'Mutasi asset berhasil disimpan');
-
         } catch (\Throwable $e) {
 
-            // 🔍 optional: log error biar gampang tracking
-            \Log::error('Error mutasi asset', [
-                'message' => $e->getMessage(),
-            ]);
 
             return back()->withErrors($e->getMessage());
         }
@@ -623,7 +616,7 @@ class AssetController extends Controller
          * PERBAIKAN MASUK
          * =========================
          */
-        if ($status === 'Perbaikan') {
+        if ($status === 'Perbaikan' || $status === 'Aktif') {
 
             // QR dari aktif
             $qr = MassetQr::with(['subKategori', 'department'])
@@ -634,7 +627,7 @@ class AssetController extends Controller
             $qrCodes = $qr->pluck('cqr')->toArray();
 
             // NON QR dari stok aktif
-            $nonqr = MassetNoQr::with('subKategori')
+            $nonqr = MassetNoQr::with(['subKategori', 'department'])
                 ->where('cstatus', 'Aktif')
                 ->where('nqty', '>', 0)
                 ->get();
@@ -662,7 +655,7 @@ class AssetController extends Controller
                     'id'        => $item->ckode,
                     'kode'      => $item->ckode,
                     'nama'      => $item->cnama,
-                    'jenis'     => 'NON_QR',
+                    'jenis'     => 'NOQR',
                     'nidsubkat' => $item->nidsubkat,
                     'niddept'   => $item->niddept,
                     'qty'       => $item->nqty,
@@ -675,12 +668,13 @@ class AssetController extends Controller
          * =========================
          * PERBAIKAN SELESAI
          * =========================
-         */ else {
+         */
+        else {
 
             // QR dari status perbaikan
             $qr = MassetQr::with(['subKategori', 'department'])
-                 ->where('cstatus', 'Perbaikan')
-                 ->get();
+                ->where('cstatus', 'Perbaikan')
+                ->get();
 
             // ambil kode QR
             $qrCodes = $qr->pluck('cqr')->toArray();
@@ -690,8 +684,8 @@ class AssetController extends Controller
                 ->whereRaw('(nqty - nqtyselesai) > 0')
                 ->whereNotExists(function ($q) {
                     $q->select(DB::raw(1))
-                    ->from('masset_qr')
-                    ->whereColumn('masset_qr.cqr', 'masset_trans.ckode');
+                        ->from('masset_qr')
+                        ->whereColumn('masset_qr.cqr', 'masset_trans.ckode');
                 })
                 ->get();
 
@@ -718,7 +712,7 @@ class AssetController extends Controller
                     'id'        => $item->ckode,
                     'kode'      => $item->ckode,
                     'nama'      => $item->cnama,
-                    'jenis'     => 'NON_QR',
+                    'jenis'     => 'NOQR',
                     'sisa'      => $item->nqty - $item->nqtyselesai,
                     'nidsubkat' => $item->ngrpid,
                     'niddept'   => $item->nlokasi,

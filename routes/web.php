@@ -7,9 +7,10 @@ use App\Http\Controllers\MsatuanController;
 use App\Http\Controllers\MassetTransController;
 use App\Http\Controllers\HistoryTransactionController;
 use App\Http\Controllers\StockCardController;
+use App\Http\Controllers\AssetReminderController;
 
 // AUTH
-Route::get('/', fn () => redirect('/login'));
+Route::get('/', fn() => redirect('/login'));
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -75,9 +76,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/asset/history', [HistoryTransactionController::class, 'index'])
         ->name('Asset.history');
     Route::get('/asset/transaksi/ajax', [MassetTransController::class, 'transaksiAjax'])
-    ->name('asset.transaksi.ajax');
+        ->name('asset.transaksi.ajax');
 
     //Kartu Stok Controller
     Route::get('/kartu-stok', [StockCardController::class, 'index'])
         ->name('kartu.stok');
+
+    // ASSET REMINDER
+    Route::prefix('asset/reminder')->name('asset.reminder.')->group(function () {
+        Route::get('/', [AssetReminderController::class, 'index'])->name('index');
+        Route::post('/', [AssetReminderController::class, 'store'])->name('store');
+        Route::get('/{id}', [AssetReminderController::class, 'show'])->name('show');
+        Route::delete('/{id}', [AssetReminderController::class, 'destroy'])->name('destroy');
+        Route::put('/{id}', [AssetReminderController::class, 'update'])->name('update');
+    });
 });
