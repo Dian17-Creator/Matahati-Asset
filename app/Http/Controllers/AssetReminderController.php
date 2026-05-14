@@ -77,6 +77,16 @@ class AssetReminderController extends Controller
             'note'            => $request->note,
         ]);
 
+        // Dispatch job untuk notifikasi
+        // Saat ini masuk antrian agar bisa di-test manual via php artisan queue:work
+        \App\Jobs\SendAssetReminderJob::dispatch($reminder);
+
+        /*
+        // Nantinya jika ingin dijadwalkan tepat pada tanggal reminder jam 08:00 pagi:
+        $scheduleTime = \Carbon\Carbon::parse($reminder->reminder_date)->setTime(8, 0);
+        \App\Jobs\SendAssetReminderJob::dispatch($reminder)->delay($scheduleTime);
+        */
+
         return response()->json([
             'success' => true,
             'message' => 'Reminder berhasil disimpan',
