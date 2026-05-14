@@ -2,13 +2,13 @@
 
 namespace App\Jobs;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Foundation\Bus\Dispatchable;
 use App\Models\AssetReminder;
+use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 
 class SendAssetReminderJob implements ShouldQueue
 {
@@ -29,19 +29,14 @@ class SendAssetReminderJob implements ShouldQueue
      */
     public function handle(): void
     {
-        Log::info("Memulai job notifikasi untuk Asset Reminder ID: " . $this->reminder->id);
+        Log::info(
+            "Memulai job notifikasi untuk Asset Reminder ID: "
+                . $this->reminder->id
+        );
 
-        // TODO: Implementasikan logika untuk mengirim push notifikasi ke aplikasi Android (misalnya menggunakan Firebase Cloud Messaging)
-        // Contoh:
-        /*
-        $tokens = \App\Models\DeviceToken::pluck('fcm_token')->toArray();
-        $message = [
-            'title' => 'Pengingat Asset',
-            'body' => 'Ada pengingat untuk asset dengan tipe: ' . $this->reminder->asset_type,
-        ];
-        // Kirim request FCM di sini
-        */
-
-        Log::info("Job notifikasi untuk Asset Reminder ID: " . $this->reminder->id . " selesai dieksekusi.");
+        Log::info(
+            "Job notifikasi selesai untuk reminder ID: "
+                . $this->reminder->id
+        );
     }
 }
