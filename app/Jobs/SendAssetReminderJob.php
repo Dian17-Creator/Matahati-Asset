@@ -14,14 +14,14 @@ class SendAssetReminderJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $reminder;
+    public $reminderId;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(AssetReminder $reminder)
+    public function __construct(int $reminderId)
     {
-        $this->reminder = $reminder;
+        $this->reminderId = $reminderId;
     }
 
     /**
@@ -29,14 +29,21 @@ class SendAssetReminderJob implements ShouldQueue
      */
     public function handle(): void
     {
+        $reminder = AssetReminder::find($this->reminderId);
+
+        if (!$reminder) {
+            Log::warning("Asset Reminder ID: {$this->reminderId} tidak ditemukan saat menjalankan job.");
+            return;
+        }
+
         Log::info(
             "Memulai job notifikasi untuk Asset Reminder ID: "
-                . $this->reminder->id
+                . $reminder->id
         );
 
         Log::info(
             "Job notifikasi selesai untuk reminder ID: "
-                . $this->reminder->id
+                . $reminder->id
         );
     }
 }
