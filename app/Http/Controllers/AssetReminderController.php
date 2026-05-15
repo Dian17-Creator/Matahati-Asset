@@ -79,7 +79,7 @@ class AssetReminderController extends Controller
 
         // Dispatch job untuk notifikasi
         // Saat ini masuk antrian agar bisa di-test manual via php artisan queue:work
-        \App\Jobs\SendAssetReminderJob::dispatch($reminder);
+        \App\Jobs\SendAssetReminderJob::dispatch($reminder->id)->onQueue('asset');
 
         /*
         // Nantinya jika ingin dijadwalkan tepat pada tanggal reminder jam 08:00 pagi:
