@@ -434,4 +434,16 @@ class AuditController extends Controller
 
         return response()->json($query->get());
     }
+
+    public function apiAssetQr(Request $request)
+    {
+        $query = DB::table("masset_qr")->select("cqr", "cnama");
+
+        if ($request->niddept) {
+            $query->where("niddept", $request->niddept);
+        }
+
+        return response()->json($query->get());
+    }
 }
+
