@@ -300,6 +300,7 @@ class AuditController extends Controller
                 "ngrpid" => "required|integer",
                 "nlokasi" => "required|integer",
                 "cqr" => "required|string|max:50",
+                "cnama" => "nullable|string|max:100",
 
                 // 🔥 kondisi utama
                 "kondisi" => "required|in:normal,masalah",
@@ -338,7 +339,7 @@ class AuditController extends Controller
             }
 
             $data["ckode"] = $asset->cqr;
-            $data["cnama"] = $asset->cnama;
+            $data["cnama"] = $data["cnama"] ?? $asset->cnama;
             $data["nqty"] = 1; // Aset QR selalu berjumlah 1
             $data["nqtyreal"] = 1; // Aset QR selalu berjumlah 1 secara fisik
 
