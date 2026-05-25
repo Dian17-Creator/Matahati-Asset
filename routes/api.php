@@ -9,6 +9,7 @@ Route::post('/audit/store', [AuditController::class, 'apiStore']);
 Route::post('/login-asset', [LoginController::class, 'apiLogin'])
     ->middleware('throttle:5,1');
 Route::post('/audit/nonqr/store', [AuditController::class, 'apiStoreNonQr']);
+Route::post('/audit/qr/store', [AuditController::class, 'apiStoreQr']);
 Route::get('/cabang', [AuditController::class, 'apiCabang']);
 Route::get('/asset-nonqr', [AuditController::class, 'apiAssetNonQr']);
 
