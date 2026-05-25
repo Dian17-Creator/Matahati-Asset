@@ -292,6 +292,130 @@ class AuditController extends Controller
         }
     }
 
+    public function apiStoreQr(Request $request)
+    {
+        try {
+            // 🔍 VALIDASI
+            $validator = Validator::make($request->all(), [
+                "ngrpid" => "required|integer",
+                "nlokasi" => "required|integer",
+                "cqr" => "required|string|max:50",
+
+                // 🔥 kondisi utama
+                "kondisi" => "required|in:normal,masalah",
+
+                // 🔥 wajib kalau masalah
+                "ccatatan" => "required_if:kondisi,masalah|string|max:255",
+                "foto" => "required_if:kondisi,masalah|image|max:2048",
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" => "Validasi gagal",
+                        "errors" => $validator->errors(),
+                    ],
+                    422,
+                );
+            }
+
+            $data = $validator->validated();
+
+            // Cari asset di master QR
+            $asset = DB::table("masset_qr")
+                ->where("cqr", $request->cqr)
+                ->first();
+
+            if (!$asset) {
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" => "Asset QR tidak ditemukan",
+                    ],
+                    404,
+                );
+            }
+
+            $data["ckode"] = $asset->cqr;
+            $data["cnama"] = $asset->cnama;
+            $data["nqty"] = 1; // Aset QR selalu berjumlah 1
+            $data["nqtyreal"] = 1; // Aset QR selalu berjumlah 1 secara fisik
+
+            // 🧠 Mapping kondisi → cstatus
+            if ($data["kondisi"] === "normal") {
+                $data["cstatus"] = "BAIK/SESUAI";
+                $data["ccatatan"] = null;
+                $data["dreffoto"] = null;
+            } else {
+                $data["cstatus"] = "MASALAH/TDK.SESUAI";
+            }
+
+            // 📷 Upload foto (kalau ada)
+            if (
+                $request->hasFile("foto") &&
+                $request->file("foto")->isValid()
+            ) {
+                $file = $request->file("foto");
+                $kodeAsset = preg_replace(
+                    "/[^A-Za-z0-9_\-]/",
+                    "_",
+                    $request->cqr,
+                );
+                $datetime = now()->format("Ymd_His");
+
+                $ext = $file->getClientOriginalExtension();
+                $filename =
+                    $kodeAsset .
+                    "_" .
+                    $datetime .
+                    "_" .
+                    rand(10, 99) .
+                    "." .
+                    $ext;
+
+                $folder = "assets/audit";
+                $destinationPath = public_path($folder);
+
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0775, true);
+                }
+
+                $file->move($destinationPath, $filename);
+                $data["dreffoto"] = $folder . "/" . $filename;
+            }
+
+            // ⏱️ Auto tanggal
+            $data["dtrans"] = now();
+
+            // 🧹 Bersihkan field tambahan
+            unset($data["kondisi"]);
+            unset($data["foto"]);
+            unset($data["cqr"]);
+
+            // 💾 Simpan
+            $save = MassetAudit::create($data);
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Audit QR berhasil disimpan",
+                    "data" => $save,
+                ],
+                201,
+            );
+        } catch (\Exception $e) {
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Terjadi kesalahan",
+                    "error" => $e->getMessage(),
+                ],
+                500,
+            );
+        }
+    }
+
     public function apiCabang()
     {
         $data = DB::table("mdepartment")->select("nid", "cname")->get();
