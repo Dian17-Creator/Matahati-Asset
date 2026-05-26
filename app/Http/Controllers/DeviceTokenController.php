@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\DeviceToken;
+use App\Models\ErpToken;
 use Illuminate\Support\Facades\Http;
 use App\Models\muser;
 use Google\Client;
@@ -15,12 +15,12 @@ class DeviceTokenController extends Controller
      */
     public function store(Request $request)
     {
-        DeviceToken::updateOrCreate(
+        ErpToken::updateOrCreate(
             [
-                'nuserid' => $request->user_id
+                'nuserid'   => $request->user_id,
+                'fcm_token' => $request->fcm_token
             ],
             [
-                'fcm_token' => $request->fcm_token,
                 'last_used_at' => now()
             ]
         );
@@ -60,7 +60,7 @@ class DeviceTokenController extends Controller
         ]);
 
         // ambil semua token device milik user login
-        $tokens = DeviceToken::where('nuserid', $request->user_id)
+        $tokens = ErpToken::where('nuserid', $request->user_id)
             ->pluck('fcm_token')
             ->toArray();
 
