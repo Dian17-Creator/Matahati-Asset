@@ -40,6 +40,16 @@ class SendAssetReminderJob implements ShouldQueue
             return;
         }
 
+        // Validasi: Cek apakah hari ini adalah tanggal pengingat yang valid di database.
+        // Jika user mengubah tanggal reminder sebelum hari H, job lama yang ada di queue
+        // akan diabaikan karena tanggalnya tidak cocok dengan hari ini.
+        $today = \Carbon\Carbon::today()->toDateString();
+        $reminderDate = \Carbon\Carbon::parse($reminder->reminder_date)->toDateString();
+        if ($today !== $reminderDate) {
+            Log::info("Job Asset Reminder ID: {$reminder->id} diabaikan karena tanggal reminder di DB ({$reminderDate}) tidak cocok dengan hari ini ({$today}).");
+            return;
+        }
+
         Log::info(
             "Memulai job notifikasi untuk Asset Reminder ID: "
                 . $reminder->id

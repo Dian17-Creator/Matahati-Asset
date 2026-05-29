@@ -77,15 +77,13 @@ class AssetReminderController extends Controller
             'note'            => $request->note,
         ]);
 
-        // Dispatch job untuk notifikasi
-        // Saat ini masuk antrian agar bisa di-test manual via php artisan queue:work
-        \App\Jobs\SendAssetReminderJob::dispatch($reminder->id)->onQueue('asset');
+        // Tentukan target waktu eksekusi: tanggal reminder jam 08:00:00 pagi
+        $scheduleTime = \Carbon\Carbon::parse($reminder->reminder_date)->setTime(8, 0, 0);
 
-        /*
-        // Nantinya jika ingin dijadwalkan tepat pada tanggal reminder jam 08:00 pagi:
-        $scheduleTime = \Carbon\Carbon::parse($reminder->reminder_date)->setTime(8, 0);
-        \App\Jobs\SendAssetReminderJob::dispatch($reminder)->delay($scheduleTime);
-        */
+        // Dispatch job untuk notifikasi ke antrean 'asset' dengan delay sampai jam 8 pagi
+        \App\Jobs\SendAssetReminderJob::dispatch($reminder->id)
+            ->onQueue('asset')
+            ->delay($scheduleTime);
 
         return response()->json([
             'success' => true,
@@ -177,6 +175,14 @@ class AssetReminderController extends Controller
             'reminder_date'   => $request->reminder_date,
             'note'            => $request->note,
         ]);
+
+        // Tentukan target waktu eksekusi baru: tanggal reminder jam 08:00:00 pagi
+        $scheduleTime = \Carbon\Carbon::parse($reminder->reminder_date)->setTime(8, 0, 0);
+
+        // Dispatch job untuk notifikasi ke antrean 'asset' dengan delay sampai jam 8 pagi
+        \App\Jobs\SendAssetReminderJob::dispatch($reminder->id)
+            ->onQueue('asset')
+            ->delay($scheduleTime);
 
         return response()->json([
             'success' => true,
