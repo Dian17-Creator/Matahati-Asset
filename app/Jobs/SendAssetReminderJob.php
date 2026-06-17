@@ -65,7 +65,7 @@ class SendAssetReminderJob implements ShouldQueue
 
         // 2. Siapkan Judul & Isi Notifikasi
         $title = "Pengingat Pemeliharaan Aset";
-        $body = "Aset [{$reminder->asset_type}] {$assetName} memerlukan tindakan. Catatan: " . ($reminder->note ?? '-');
+        $body = "Aset {$assetName} memerlukan tindakan. Catatan: " . ($reminder->note ?? '-');
 
         // 3. Ambil Token Penerima (Semua Admin & Super Admin)
         $adminIds = muser::where('fadmin', 1)
@@ -128,7 +128,6 @@ class SendAssetReminderJob implements ShouldQueue
             }
 
             Log::info("Pengiriman notifikasi selesai. Berhasil: {$successCount}, Gagal: {$failCount}");
-
         } catch (\Exception $e) {
             Log::error("Gagal mengirim notifikasi FCM: " . $e->getMessage());
         }
@@ -140,7 +139,7 @@ class SendAssetReminderJob implements ShouldQueue
     private function getAccessToken()
     {
         $client = new Client();
-        
+
         $guzzleClient = null;
         // Lewati verifikasi SSL jika di lokal Windows untuk menghindari cURL error 60
         if (config('app.env') !== 'production') {
@@ -150,11 +149,11 @@ class SendAssetReminderJob implements ShouldQueue
 
         $client->setAuthConfig(storage_path('app/firebase-service-account.json'));
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
-        
-        $token = $guzzleClient 
+
+        $token = $guzzleClient
             ? $client->fetchAccessTokenWithAssertion($guzzleClient)
             : $client->fetchAccessTokenWithAssertion();
-            
+
         return $token['access_token'];
     }
 }
