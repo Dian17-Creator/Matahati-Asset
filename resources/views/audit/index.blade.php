@@ -6,13 +6,13 @@
     </div>
 
     {{-- 🔍 FILTER & SEARCH --}}
-    <form method="GET" action="{{ route('audit.index') }}" class="mb-3">
+    <form method="GET" id="auditFilterForm" action="{{ route('audit.index') }}" class="mb-3">
         <div class="row g-2 align-items-center">
 
             {{-- SEARCH --}}
             <div class="col">
                 <div class="input-group">
-                    <input type="text" name="search" class="form-control"
+                    <input type="text" id="auditSearchInput" name="search" class="form-control"
                         placeholder="Cari kode / nama asset..." value="{{ request('search') }}">
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-search"></i>
@@ -22,7 +22,7 @@
 
             {{-- FILTER STATUS --}}
             <div class="col-md-2">
-                <select name="status" class="form-select" onchange="this.form.submit()">
+                <select id="auditStatusFilter" name="status" class="form-select">
                     <option value="">Semua Status</option>
                     <option value="BAIK/SESUAI" {{ request('status') == 'BAIK/SESUAI' ? 'selected' : '' }}>
                         BAIK / SESUAI
@@ -36,7 +36,7 @@
 
             {{-- FILTER LOKASI --}}
             <div class="col-md-2">
-                <select name="lokasi" class="form-select" onchange="this.form.submit()">
+                <select id="auditLokasiFilter" name="lokasi" class="form-select">
                     <option value="">📍 Semua Lokasi</option>
                     @foreach ($lokasiList as $lok)
                         <option value="{{ $lok->nid }}" {{ request('lokasi') == $lok->nid ? 'selected' : '' }}>
@@ -49,90 +49,105 @@
         </div>
     </form>
 
-    {{-- TABLE --}}
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center"
-            style="background-color: #B63352; color: white;">
-            <b>Master Audit</b>
-            <span class="badge bg-light text-dark">{{ $data->total() }} data</span>
-        </div>
-
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-sm align-middle">
-                    <thead class="table-dark text-center">
-                        <tr>
-                            <th>No</th>
-                            <th>Lokasi</th>
-                            <th>Tanggal</th>
-                            <th>Kode Asset</th>
-                            <th>Nama Asset</th>
-                            <th>Status</th>
-                            <th>Qty Sistem</th>
-                            <th>Qty Real</th>
-                            <th>Catatan</th>
-                            <th>Foto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($data as $i => $row)
-                            <tr>
-                                <td class="text-center">{{ $data->firstItem() + $i }}</td>
-
-                                <td>{{ $row->department->cname ?? '-' }}</td>
-
-                                <td class="text-center">
-                                    {{ $row->dtrans ? $row->dtrans->format('d-m-Y') : '-' }}
-                                </td>
-
-                                <td class="text-center">
-                                    <span class="badge bg-primary">{{ $row->ckode }}</span>
-                                </td>
-
-                                <td>{{ $row->cnama ?? '-' }}</td>
-
-                                <td class="text-center">
-                                    @if ($row->cstatus === 'BAIK/SESUAI')
-                                        <span class="badge bg-success">{{ $row->cstatus }}</span>
-                                    @elseif($row->cstatus === 'MASALAH/TDK.SESUAI')
-                                        <span class="badge bg-danger">{{ $row->cstatus }}</span>
-                                    @else
-                                        <span class="badge bg-secondary">{{ $row->cstatus ?? '-' }}</span>
-                                    @endif
-                                </td>
-
-                                <td class="text-center">{{ $row->nqty ?? 0 }}</td>
-
-                                <td class="text-center">{{ $row->nqtyreal ?? 0 }}</td>
-
-                                <td>{{ $row->ccatatan ?? '-' }}</td>
-
-                                <td class="text-center">
-                                    @if ($row->dreffoto)
-                                        <a href="{{ asset('assets/audit/' . basename($row->dreffoto)) }}" target="_blank">
-                                            <img src="{{ asset('assets/audit/' . basename($row->dreffoto)) }}"
-                                                style="width:50px;height:50px;object-fit:cover;border-radius:4px;">
-                                        </a>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="10" class="text-center text-muted">
-                                    Belum ada data audit
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- PAGINATION --}}
-            <div class="d-flex justify-content-center mt-2">
-                {{ $data->withQueryString()->links('pagination::bootstrap-5') }}
+    {{-- TABLE WRAPPER WITH LOADING OVERLAY --}}
+    <div id="audit-table-wrapper" class="position-relative">
+        
+        {{-- Spinner Overlay --}}
+        <div id="audit-loading-spinner" class="d-none position-absolute top-50 start-50 translate-middle d-flex justify-content-center align-items-center" style="z-index: 1000; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(2px); transition: all 0.3s;">
+            <div class="spinner-border text-danger" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
             </div>
         </div>
+
+        {{-- Table Content --}}
+        <div id="audit-table-content" style="transition: opacity 0.2s ease-in-out;">
+            @include('audit.partials.audit_table')
+        </div>
+
     </div>
+
+    {{-- Link modern styling shared across Category & Transaction pages --}}
+    <link rel="stylesheet" href="{{ asset('css/asset.css') }}?v=1">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('auditFilterForm');
+            const searchInput = document.getElementById('auditSearchInput');
+            const statusFilter = document.getElementById('auditStatusFilter');
+            const lokasiFilter = document.getElementById('auditLokasiFilter');
+            
+            const spinner = document.getElementById('audit-loading-spinner');
+            const content = document.getElementById('audit-table-content');
+
+            let searchTimeout = null;
+
+            // Load audit via AJAX
+            function loadAudit(page = 1) {
+                // Show loading spinner and dim table
+                spinner.classList.remove('d-none');
+                content.style.opacity = '0.4';
+
+                const params = new URLSearchParams({
+                    page: page,
+                    search: searchInput.value,
+                    status: statusFilter.value,
+                    lokasi: lokasiFilter.value
+                });
+
+                fetch(`{{ route('audit.index') }}?${params.toString()}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.text())
+                    .then(html => {
+                        content.innerHTML = html;
+                        bindPagination();
+                        
+                        // Hide loading spinner and restore opacity
+                        spinner.classList.add('d-none');
+                        content.style.opacity = '1';
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        spinner.classList.add('d-none');
+                        content.style.opacity = '1';
+                    });
+            }
+
+            // Bind click event to pagination links
+            function bindPagination() {
+                content.querySelectorAll('.pagination a').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const url = new URL(this.href);
+                        const page = url.searchParams.get('page') || 1;
+                        loadAudit(page);
+                    });
+                });
+            }
+
+            // Form Submit Interceptor
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                clearTimeout(searchTimeout);
+                loadAudit(1);
+            });
+
+            // Instant Search (Debounced)
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    loadAudit(1);
+                }, 400); // 400ms debounce
+            });
+
+            // Dropdown filters
+            statusFilter.addEventListener('change', () => loadAudit(1));
+            lokasiFilter.addEventListener('change', () => loadAudit(1));
+
+            // Init pagination binding
+            bindPagination();
+        });
+    </script>
 @endsection
