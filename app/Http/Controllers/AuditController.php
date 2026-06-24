@@ -196,6 +196,7 @@ class AuditController extends Controller
                 "nqtyreal" => "required_if:kondisi,tidak_sesuai|integer",
                 "ccatatan" => "required_if:kondisi,tidak_sesuai|string|max:255",
                 "foto" => "required_if:kondisi,tidak_sesuai|image|max:2048",
+                "dtrans" => "nullable|date",
             ]);
 
             if ($validator->fails()) {
@@ -273,7 +274,7 @@ class AuditController extends Controller
             }
 
             // ⏱️ Auto tanggal
-            $data["dtrans"] = now();
+            $data["dtrans"] = $request->dtrans ?? now();
 
             // 🧹 Bersihkan field tambahan
             unset($data["kondisi"]);
@@ -318,6 +319,7 @@ class AuditController extends Controller
                 // 🔥 wajib kalau masalah
                 "ccatatan" => "required_if:kondisi,masalah|string|max:255",
                 "foto" => "required_if:kondisi,masalah|image|max:2048",
+                "dtrans" => "nullable|date",
             ]);
 
             if ($validator->fails()) {
@@ -397,7 +399,7 @@ class AuditController extends Controller
             }
 
             // ⏱️ Auto tanggal
-            $data["dtrans"] = now();
+            $data["dtrans"] = $request->dtrans ?? now();
 
             // 🧹 Bersihkan field tambahan
             unset($data["kondisi"]);

@@ -15,6 +15,7 @@ class MassetAudit extends Model
         'nlokasi',
         'ckode',
         'cnama',
+        'dtrans',
         'cstatus',
         'nqty',
         'nqtyreal',
