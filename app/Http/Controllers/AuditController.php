@@ -39,6 +39,10 @@ class AuditController extends Controller
 
         $lokasiList = Mdepartment::select('nid', 'cname')->orderBy('cname')->get();
 
+        if ($request->ajax()) {
+            return view("audit.partials.audit_table", compact("data"));
+        }
+
         return view("audit.index", compact("data", "lokasiList"));
     }
 
