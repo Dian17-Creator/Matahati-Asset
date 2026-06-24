@@ -8,6 +8,7 @@ use App\Http\Controllers\MassetTransController;
 use App\Http\Controllers\HistoryTransactionController;
 use App\Http\Controllers\StockCardController;
 use App\Http\Controllers\AssetReminderController;
+use App\Http\Controllers\AuditController;
 
 // AUTH
 Route::get('/', fn() => redirect('/login'));
@@ -81,6 +82,10 @@ Route::middleware(['auth'])->group(function () {
     //Kartu Stok Controller
     Route::get('/kartu-stok', [StockCardController::class, 'index'])
         ->name('kartu.stok');
+
+    // AUDIT (VIEW ONLY)
+    Route::get('/audit', [AuditController::class, 'index'])
+        ->name('audit.index');
 
     // ASSET REMINDER
     Route::prefix('asset/reminder')->name('asset.reminder.')->group(function () {

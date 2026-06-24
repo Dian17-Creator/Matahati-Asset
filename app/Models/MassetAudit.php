@@ -27,4 +27,12 @@ class MassetAudit extends Model
         'nqty' => 'integer',
         'nqtyreal' => 'integer',
     ];
+
+    /**
+     * Relasi ke tabel mdepartment (lokasi)
+     */
+    public function department()
+    {
+        return $this->belongsTo(\App\Models\Mdepartment::class, 'nlokasi', 'nid');
+    }
 }
