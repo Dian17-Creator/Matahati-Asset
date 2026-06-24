@@ -4,32 +4,42 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MassetAudit;
+use App\Models\Mdepartment;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
 class AuditController extends Controller
 {
     /**
-     * 🔹 LIST DATA
+     * 🔹 LIST DATA (VIEW ONLY)
      */
     public function index(Request $request)
     {
-        $query = MassetAudit::query();
+        $query = MassetAudit::with('department');
 
-        // 🔍 Search (opsional)
+        // 🔍 Search
         if ($request->search) {
             $query->where(function ($q) use ($request) {
-                $q->where(
-                    "ckode",
-                    "like",
-                    "%" . $request->search . "%",
-                )->orWhere("cnama", "like", "%" . $request->search . "%");
+                $q->where("ckode", "like", "%" . $request->search . "%")
+                  ->orWhere("cnama", "like", "%" . $request->search . "%");
             });
+        }
+
+        // 🔍 Filter Status
+        if ($request->status) {
+            $query->where('cstatus', $request->status);
+        }
+
+        // 🔍 Filter Lokasi
+        if ($request->lokasi) {
+            $query->where('nlokasi', $request->lokasi);
         }
 
         $data = $query->latest("nid")->paginate(10);
 
-        return view("audit.index", compact("data"));
+        $lokasiList = Mdepartment::select('nid', 'cname')->orderBy('cname')->get();
+
+        return view("audit.index", compact("data", "lokasiList"));
     }
 
     /**

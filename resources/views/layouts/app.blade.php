@@ -111,6 +111,15 @@
 
                     <div class="nav-divider"></div>
 
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('audit.index') ? 'fw-bold text-white' : '' }}"
+                            href="{{ route('audit.index') }}">
+                            AUDIT
+                        </a>
+                    </li>
+
+                    <div class="nav-divider"></div>
+
                     {{-- Tombol Logout --}}
                     <li class="nav-item">
                         <form action="{{ route('logout') }}" method="POST" class="d-inline">
@@ -148,6 +157,11 @@
                         <a href="{{ route('kartu.stok') }}"
                             class="menu-item {{ request()->routeIs('kartu.stok') ? 'active' : '' }}">
                             Kartu Stok
+                        </a>
+
+                        <a href="{{ route('audit.index') }}"
+                            class="menu-item {{ request()->routeIs('audit.index') ? 'active' : '' }}">
+                            Audit
                         </a>
 
                         <form action="{{ route('logout') }}" method="POST" class="w-100">
