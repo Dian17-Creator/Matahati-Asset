@@ -109,8 +109,8 @@
 
                                 <td class="text-center">
                                     @if ($row->dreffoto)
-                                        <a href="{{ asset('asset/audit/' . basename($row->dreffoto)) }}" target="_blank">
-                                            <img src="{{ asset('asset/audit/' . basename($row->dreffoto)) }}"
+                                        <a href="{{ asset('assets/audit/' . basename($row->dreffoto)) }}" target="_blank">
+                                            <img src="{{ asset('assets/audit/' . basename($row->dreffoto)) }}"
                                                 style="width:50px;height:50px;object-fit:cover;border-radius:4px;">
                                         </a>
                                     @else

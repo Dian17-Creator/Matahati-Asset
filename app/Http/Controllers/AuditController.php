@@ -269,7 +269,7 @@ class AuditController extends Controller
                 }
 
                 $file->move($destinationPath, $filename);
-                $data["dreffoto"] = $folder . "/" . $filename;
+                $data["dreffoto"] = $filename;
             }
 
             // ⏱️ Auto tanggal
@@ -393,7 +393,7 @@ class AuditController extends Controller
                 }
 
                 $file->move($destinationPath, $filename);
-                $data["dreffoto"] = $folder . "/" . $filename;
+                $data["dreffoto"] = $filename;
             }
 
             // ⏱️ Auto tanggal
