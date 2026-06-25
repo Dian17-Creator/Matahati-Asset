@@ -110,6 +110,7 @@ class AssetService
                 'msatuan_id' => $data['msatuan_id'],
                 'nminstok'   => $data['nminstok'] ?? 0,
                 'ccatatan'   => $data['ccatatan'] ?? null,
+                'cstatus'    => 'Aktif',
                 'dtrans'     => now(),
             ]);
         });
