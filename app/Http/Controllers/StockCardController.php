@@ -59,8 +59,8 @@ class StockCardController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('master.kode', 'like', "%{$search}%")
-                  ->orWhere('master.cnama', 'like', "%{$search}%")
-                  ->orWhere('master.satuan', 'like', "%{$search}%");
+                    ->orWhere('master.cnama', 'like', "%{$search}%")
+                    ->orWhere('master.satuan', 'like', "%{$search}%");
             });
         }
 
@@ -139,6 +139,23 @@ class StockCardController extends Controller
                 $stokAwalQuery->where('nlokasi', $lokasi);
             }
 
+            $totalMasuk = DB::table('masset_trans')
+                ->where('ckode', $kode)
+                ->whereBetween('dtrans', [$start, $end])
+                ->where('nqty', '>', 0)
+                ->sum('nqty');
+
+            $totalKeluar = DB::table('masset_trans')
+                ->where('ckode', $kode)
+                ->whereBetween('dtrans', [$start, $end])
+                ->where('nqty', '<', 0)
+                ->sum(DB::raw('ABS(nqty)'));
+
+            $stokSekarang = DB::table('masset_noqr')
+                ->where('ckode', $kode)
+                ->value('nqty');
+
+            $stok_awal = $stokSekarang - $totalMasuk + $totalKeluar;
             $stok_awal = $stokAwalQuery->sum('nqty') ?? 0;
 
             // 🔥 transaksi detail
@@ -221,14 +238,14 @@ class StockCardController extends Controller
         $stok_awal = DB::table('masset_trans')
             ->where('ckode', $kode)
             ->whereDate('dtrans', '<', $start)
-            ->when($lokasi, fn ($q) => $q->where('nlokasi', $lokasi))
+            ->when($lokasi, fn($q) => $q->where('nlokasi', $lokasi))
             ->sum('nqty');
 
         // transaksi
         $trans = DB::table('masset_trans')
             ->where('ckode', $kode)
             ->whereBetween('dtrans', [$start, $end])
-            ->when($lokasi, fn ($q) => $q->where('nlokasi', $lokasi))
+            ->when($lokasi, fn($q) => $q->where('nlokasi', $lokasi))
             ->orderBy('dtrans')
             ->get();
 
