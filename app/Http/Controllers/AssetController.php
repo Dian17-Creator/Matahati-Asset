@@ -616,7 +616,7 @@ class AssetController extends Controller
          * PERBAIKAN MASUK
          * =========================
          */
-        if ($status === 'Perbaikan' || $status === 'Aktif') {
+        if ($status === 'Perbaikan') {
 
             // QR dari aktif
             $qr = MassetQr::with(['subKategori', 'department'])
@@ -655,7 +655,7 @@ class AssetController extends Controller
                     'id'        => $item->ckode,
                     'kode'      => $item->ckode,
                     'nama'      => $item->cnama,
-                    'jenis'     => 'NOQR',
+                    'jenis'     => 'NON_QR',
                     'nidsubkat' => $item->nidsubkat,
                     'niddept'   => $item->niddept,
                     'qty'       => $item->nqty,
@@ -712,7 +712,7 @@ class AssetController extends Controller
                     'id'        => $item->ckode,
                     'kode'      => $item->ckode,
                     'nama'      => $item->cnama,
-                    'jenis'     => 'NOQR',
+                    'jenis'     => 'NON_QR',
                     'sisa'      => $item->nqty - $item->nqtyselesai,
                     'nidsubkat' => $item->ngrpid,
                     'niddept'   => $item->nlokasi,

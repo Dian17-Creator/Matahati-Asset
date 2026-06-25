@@ -10,6 +10,7 @@
                 <th>Qty</th>
                 <th>Min Stok</th>
                 <th>Satuan</th>
+                <th>Status</th>
                 <th>Catatan</th>
             </tr>
         </thead>
@@ -30,6 +31,21 @@
                     <td class="text-center">{{ $nqr->nqty }}</td>
                     <td class="text-center">{{ $nqr->nminstok }}</td>
                     <td>{{ $nqr->satuan?->nama ?? '-' }}</td>
+                    <td class="text-center">
+                        @php
+                            $status = strtolower($nqr->cstatus);
+                            $badgeClass = match ($status) {
+                                'aktif' => 'bg-success',
+                                'perbaikan' => 'bg-warning text-dark',
+                                'non aktif' => 'bg-danger',
+                                default => 'bg-secondary',
+                            };
+                        @endphp
+
+                        <span class="badge {{ $badgeClass }}">
+                            {{ $nqr->cstatus ?? 'Aktif' }}
+                        </span>
+                    </td>
                     <td>{{ $nqr->ccatatan }}</td>
                 </tr>
             @endforeach
