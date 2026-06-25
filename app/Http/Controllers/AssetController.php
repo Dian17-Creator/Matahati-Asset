@@ -434,7 +434,7 @@ class AssetController extends Controller
                         'cnama'       => $asset->cnama,
                         'nlokasi'     => $asset->niddept,
 
-                        'nqty'        => 1,
+                        'nqty'        => $cjnstrans === 'ServiceIn' ? -1 : 1,
                         'nqtyselesai' => $cjnstrans === 'ServiceOut' ? 1 : 0,
                         'ccatatan'    => $validated['ccatatan'] ?? null,
 
@@ -477,7 +477,7 @@ class AssetController extends Controller
                             'cnama'       => $asset->cnama,
                             'nlokasi'     => $validated['niddept'],
 
-                            'nqty'        => $validated['qty'],
+                            'nqty'        => -1 * (int) $validated['qty'],
                             'nqtyselesai' => 0,
                             'ccatatan'    => $validated['ccatatan'] ?? null,
 
@@ -500,7 +500,7 @@ class AssetController extends Controller
                             throw new \Exception('Data ServiceIn tidak ditemukan');
                         }
 
-                        $sisa = $transIn->nqty - ($transIn->nqtyselesai ?? 0);
+                        $sisa = abs($transIn->nqty) - ($transIn->nqtyselesai ?? 0);
 
                         if ($validated['qty'] > $sisa) {
                             throw new \Exception("Qty melebihi sisa ({$sisa})");
@@ -681,7 +681,7 @@ class AssetController extends Controller
 
             // NON QR dari transaksi (FIX FINAL)
             $nonqr = MassetTrans::where('cjnstrans', 'ServiceIn')
-                ->whereRaw('(nqty - nqtyselesai) > 0')
+                ->whereRaw('(ABS(nqty) - nqtyselesai) > 0')
                 ->whereNotExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('masset_qr')
@@ -713,7 +713,7 @@ class AssetController extends Controller
                     'kode'      => $item->ckode,
                     'nama'      => $item->cnama,
                     'jenis'     => 'NON_QR',
-                    'sisa'      => $item->nqty - $item->nqtyselesai,
+                    'sisa'      => abs($item->nqty) - $item->nqtyselesai,
                     'nidsubkat' => $item->ngrpid,
                     'niddept'   => $item->nlokasi,
                     'lokasi' => DB::table('mdepartment')
