@@ -176,8 +176,8 @@ class StockCardController extends Controller
                     'Add'        => 'Penambahan',
                     'MoveIn'     => 'Mutasi Masuk',
                     'MoveOut'    => 'Mutasi Keluar',
-                    'ServiceIn'  => 'Perbaikan Selesai',
-                    'ServiceOut' => 'Perbaikan Masuk',
+                    'ServiceIn'  => 'Perbaikan Masuk',
+                    'ServiceOut' => 'Perbaikan Selesai',
                     'Dispose'    => 'Pemusnahan',
                 ];
 
