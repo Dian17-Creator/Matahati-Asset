@@ -13,6 +13,7 @@ Route::post('/audit/qr/store', [AuditController::class, 'apiStoreQr']);
 Route::get('/cabang', [AuditController::class, 'apiCabang']);
 Route::get('/asset-nonqr', [AuditController::class, 'apiAssetNonQr']);
 Route::get('/asset-qr', [AuditController::class, 'apiAssetQr']);
+Route::post('/asset-nonqr/pemusnahan', [AuditController::class, 'apiPemusnahanNonQr']);
 
 // Notifikasi FCM Routes
 Route::post('/save-token', [DeviceTokenController::class, 'store']);

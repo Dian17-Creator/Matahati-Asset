@@ -7,6 +7,7 @@ use App\Models\MassetAudit;
 use App\Models\Mdepartment;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Services\AssetService;
 
 class AuditController extends Controller
 {
@@ -21,7 +22,7 @@ class AuditController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where("ckode", "like", "%" . $request->search . "%")
-                  ->orWhere("cnama", "like", "%" . $request->search . "%");
+                    ->orWhere("cnama", "like", "%" . $request->search . "%");
             });
         }
 
@@ -460,6 +461,46 @@ class AuditController extends Controller
         }
 
         return response()->json($query->get());
+    }
+
+    public function apiPemusnahanNonQr(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'ckode'    => 'required|string|exists:masset_noqr,ckode',
+                'niddept'  => 'required|integer|exists:mdepartment,nid',
+                'qty'      => 'required|integer|min:1',
+                'ccatatan' => 'nullable|string|max:100',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            AssetService::pemusnahanNonQr([
+                'ckode'    => $validated['ckode'],
+                'niddept'  => $validated['niddept'],
+                'qty'      => $validated['qty'],
+                'ccatatan' => $validated['ccatatan'] ?? null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Asset berhasil dimusnahkan'
+            ], 200);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memusnahkan asset: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
 
