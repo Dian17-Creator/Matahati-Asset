@@ -20,7 +20,7 @@
                         <th>No</th>
                         <th>Tanggal</th>
                         <th>No Transaksi</th>
-                        <th>Cabang</th>
+                        <th>Lokasi</th>
                         <th>Keterangan</th>
                         <th>Masuk</th>
                         <th>Keluar</th>
