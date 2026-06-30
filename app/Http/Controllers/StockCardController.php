@@ -159,16 +159,21 @@ class StockCardController extends Controller
             $stok_awal = $stokAwalQuery->sum('nqty') ?? 0;
 
             // 🔥 transaksi detail
-            $transQuery = DB::table('masset_trans')
-                ->where('ckode', $kode)
-                ->whereBetween('dtrans', [$start, $end]);
+            $transQuery = DB::table('masset_trans as t')
+                ->leftJoin('mdepartment as d', 't.nlokasi', '=', 'd.nid')
+                ->where('t.ckode', $kode)
+                ->whereBetween('t.dtrans', [$start, $end])
+                ->select(
+                    't.*',
+                    'd.cname as nama_lokasi'
+                );
 
             if ($lokasi) {
-                $transQuery->where('nlokasi', $lokasi);
+                $transQuery->where('t.nlokasi', $lokasi);
             }
 
             $trans = $transQuery
-                ->orderBy('dtrans')
+                ->orderBy('t.dtrans')
                 ->get();
 
             // 🔥 running saldo
