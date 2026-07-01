@@ -44,7 +44,8 @@ class AssetController extends Controller
             'subKategori.kategori',
             'department',
         ])
-            ->orderByDesc('ckode')
+            ->orderByDesc('dtrans')
+            ->orderByDesc('nid')
             ->paginate(5, ['*'], 'transaksi_page')
             ->withQueryString(); // 🔥 WAJIB
 
