@@ -1,10 +1,10 @@
 <!-- Modal Edit Reminder -->
 <div class="modal fade" id="modalEditReminder" tabindex="-1" aria-labelledby="modalEditReminderLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <form id="formEditReminder">
-            <input type="hidden" id="edit_reminder_id">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formEditReminder">
+                <input type="hidden" id="edit_reminder_id">
 
-            <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
                     <h5 class="modal-title" id="modalEditReminderLabel">Edit Reminder Asset</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -57,17 +57,12 @@
 
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Batal
-                    </button>
-
-                    <button type="submit" class="btn btn-warning">
-                        Update
-                    </button>
+                <div class="modal-footer d-flex justify-content-between w-100 gap-2">
+                    <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning flex-fill">Update</button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
