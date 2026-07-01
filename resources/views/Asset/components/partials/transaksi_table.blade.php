@@ -10,7 +10,9 @@
                     Tanggal Transaksi <i class="bi bi-arrow-down-up ms-1"></i>
                 </th>
 
-                <th>Nomor Transaksi</th>
+                <th class="sortable" data-sort="notrans">
+                    Nomor Transaksi <i class="bi bi-arrow-down-up ms-1"></i>
+                </th>
 
                 <th class="sortable" data-sort="jenis">
                     Jenis Transaksi <i class="bi bi-arrow-down-up ms-1"></i>

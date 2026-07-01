@@ -26,6 +26,7 @@ class MassetTransController extends Controller
                 "department",
             ])
                 ->orderByDesc("dtrans")
+                ->orderByDesc("nid")
                 ->paginate(10),
 
             // 🔥 TAMBAH INI
@@ -295,6 +296,7 @@ class MassetTransController extends Controller
         $sortable = [
             "lokasi" => "nlokasi",
             "tanggal" => "dtrans",
+            "notrans" => "cnotrans",
             "jenis" => "cjnstrans",
             "kode" => "ckode",
             "nama" => "cnama",
@@ -335,11 +337,15 @@ class MassetTransController extends Controller
             );
         }
 
-        // ================= SORTING (INI YANG KURANG) =================
+        // ================= SORTING =================
         if (isset($sortable[$sort])) {
             $query->orderBy($sortable[$sort], $direction);
+            if ($sort !== 'tanggal') {
+                $query->orderByDesc('dtrans');
+            }
+            $query->orderByDesc('nid');
         } else {
-            $query->orderByDesc("dtrans");
+            $query->orderByDesc("dtrans")->orderByDesc("nid");
         }
 
         $transaksi = $query->paginate(5)->withQueryString();
