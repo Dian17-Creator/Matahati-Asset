@@ -1,14 +1,13 @@
 <div class="modal fade" id="modalAssetPerbaikan" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="POST" action="{{ route('asset.qr.perbaikan') }}">
-            @csrf
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('asset.qr.perbaikan') }}">
+                @csrf
 
-            {{-- 🔥 hidden --}}
-            <input type="hidden" name="jenis_asset" id="jenisAssetPerbaikan">
-            <input type="hidden" name="nidsubkat" id="subkatInput">
-            <input type="hidden" name="niddept" id="deptInput">
-
-            <div class="modal-content">
+                {{-- 🔥 hidden --}}
+                <input type="hidden" name="jenis_asset" id="jenisAssetPerbaikan">
+                <input type="hidden" name="nidsubkat" id="subkatInput">
+                <input type="hidden" name="niddept" id="deptInput">
 
                 <div class="modal-header bg-warning text-white">
                     <h5 class="modal-title">Perbaikan Asset</h5>
@@ -54,17 +53,12 @@
 
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Batal
-                    </button>
-                    <button type="submit" class="btn btn-warning">
-                        Simpan Perbaikan
-                    </button>
+                <div class="modal-footer d-flex justify-content-between w-100 gap-2">
+                    <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success flex-fill">Simpan</button>
                 </div>
-
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 

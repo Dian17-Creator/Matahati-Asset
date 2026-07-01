@@ -1,14 +1,12 @@
 <div class="modal fade" id="modalAssetMutasi" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="POST" action="{{ route('asset.mutasi') }}">
-            @csrf
-
-            <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('asset.mutasi') }}">
+                @csrf
 
                 {{-- HEADER --}}
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">Mutasi Asset</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
                 {{-- BODY --}}
@@ -33,11 +31,11 @@
                             <select name="kode_asset_qr" id="assetQrSelect" class="form-select">
                                 <option value="">-- Pilih Asset QR Aktif --</option>
                                 @foreach ($assetQrAktif as $qr)
-                                    <option value="{{ $qr->nid }}" data-niddept="{{ $qr->niddept }}">
-                                        {{ $qr->cqr }}
-                                        - {{ $qr->cnama ?? $qr->subKategori->cnama }}
-                                        ({{ $qr->department->cname }})
-                                    </option>
+                                <option value="{{ $qr->nid }}" data-niddept="{{ $qr->niddept }}">
+                                    {{ $qr->cqr }}
+                                    - {{ $qr->cnama ?? $qr->subKategori->cnama }}
+                                    ({{ $qr->department->cname }})
+                                </option>
                                 @endforeach
                             </select>
                         </div>
@@ -55,11 +53,11 @@
                             <select name="kode_asset_nonqr" id="assetNonQrSelect" class="form-select">
                                 <option value="">-- Pilih Asset Non QR --</option>
                                 @foreach ($assetNonQrPemusnahan as $nonqr)
-                                    <option value="{{ $nonqr->ckode }}" data-niddept="{{ $nonqr->niddept }}">
-                                        {{ $nonqr->ckode }}
-                                        - {{ $nonqr->cnama }}
-                                        ({{ $nonqr->department->cname }} | Stok: {{ $nonqr->nqty }})
-                                    </option>
+                                <option value="{{ $nonqr->ckode }}" data-niddept="{{ $nonqr->niddept }}">
+                                    {{ $nonqr->ckode }}
+                                    - {{ $nonqr->cnama }}
+                                    ({{ $nonqr->department->cname }} | Stok: {{ $nonqr->nqty }})
+                                </option>
                                 @endforeach
                             </select>
                         </div>
@@ -80,9 +78,9 @@
                         <select name="niddept_tujuan" class="form-select" required>
                             <option value="">-- Pilih Lokasi Tujuan --</option>
                             @foreach ($departments as $dept)
-                                <option value="{{ $dept->nid }}">
-                                    {{ $dept->cname }}
-                                </option>
+                            <option value="{{ $dept->nid }}">
+                                {{ $dept->cname }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
@@ -96,17 +94,12 @@
                 </div>
 
                 {{-- FOOTER --}}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Batal
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        Simpan Mutasi
-                    </button>
+                <div class="modal-footer d-flex justify-content-between w-100 gap-2">
+                    <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary flex-fill">Simpan</button>
                 </div>
-
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 

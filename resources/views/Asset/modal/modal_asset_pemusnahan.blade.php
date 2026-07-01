@@ -1,9 +1,10 @@
 <div class="modal fade" id="modalAssetPemusnahan" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="POST" action="{{ route('asset.pemusnahan') }}">
-            @csrf
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('asset.pemusnahan') }}">
+                @csrf
 
-            <div class="modal-content">
+
                 {{-- HEADER --}}
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">Pemusnahan Asset</h5>
@@ -29,9 +30,9 @@
                             <select name="kode_asset_qr" id="kodeAssetQr" class="form-select">
                                 <option value="">-- Pilih Asset QR Aktif --</option>
                                 @foreach ($assetQrAktif as $qr)
-                                    <option value="{{ $qr->nid }}">
-                                        {{ $qr->cqr }} - {{ $qr->subKategori->cnama }}
-                                    </option>
+                                <option value="{{ $qr->nid }}">
+                                    {{ $qr->cqr }} - {{ $qr->subKategori->cnama }}
+                                </option>
                                 @endforeach
                             </select>
                         </div>
@@ -44,11 +45,11 @@
                             <select name="kode_asset_nonqr" class="form-select">
                                 <option value="">-- Pilih Asset Non QR --</option>
                                 @foreach ($assetNonQrPemusnahan as $nonqr)
-                                    <option value="{{ $nonqr->ckode }}|{{ $nonqr->niddept }}">
-                                        ({{ optional($nonqr->department)->cname ?? '-' }})
-                                        {{ $nonqr->ckode }} - {{ $nonqr->cnama }}
-                                        (Stok: {{ $nonqr->nqty }})
-                                    </option>
+                                <option value="{{ $nonqr->ckode }}|{{ $nonqr->niddept }}">
+                                    ({{ optional($nonqr->department)->cname ?? '-' }})
+                                    {{ $nonqr->ckode }} - {{ $nonqr->cnama }}
+                                    (Stok: {{ $nonqr->nqty }})
+                                </option>
                                 @endforeach
                             </select>
                         </div>
@@ -67,16 +68,12 @@
                 </div>
 
                 {{-- FOOTER --}}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Batal
-                    </button>
-                    <button type="submit" class="btn btn-danger">
-                        Simpan Pemusnahan
-                    </button>
+                <div class="modal-footer d-flex justify-content-between w-100 gap-2">
+                    <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success flex-fill">Simpan</button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 

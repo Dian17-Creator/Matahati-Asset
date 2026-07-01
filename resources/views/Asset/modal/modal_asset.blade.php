@@ -1,9 +1,8 @@
-<div class="modal fade" id="modalAssetTrans">
-    <div class="modal-dialog">
-        <form method="POST" action="{{ route('asset.trans.store') }}" enctype="multipart/form-data">
-            @csrf
-
-            <div class="modal-content">
+<div class="modal fade" id="modalAssetTrans" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('asset.trans.store') }}" enctype="multipart/form-data">
+                @csrf
 
                 {{-- HEADER --}}
                 <div class="modal-header" style="background-color:#B63352;color:white;">
@@ -38,7 +37,7 @@
                                 <select name="nlokasi" class="form-control">
                                     <option value="">-- Pilih Lokasi --</option>
                                     @foreach ($departments as $dept)
-                                        <option value="{{ $dept->nid }}">{{ $dept->cname }}</option>
+                                    <option value="{{ $dept->nid }}">{{ $dept->cname }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -49,11 +48,11 @@
                                 <select name="sub_kategori_id" class="form-control">
                                     <option value="">-- Pilih Sub Kategori --</option>
                                     @foreach ($subkategoriAll as $s)
-                                        @if ($s->fqr == 1)
-                                            <option value="{{ $s->nid }}">
-                                                {{ $s->kategori->ckode }} - {{ $s->ckode }} | {{ $s->cnama }}
-                                            </option>
-                                        @endif
+                                    @if ($s->fqr == 1)
+                                    <option value="{{ $s->nid }}">
+                                        {{ $s->kategori->ckode }} - {{ $s->ckode }} | {{ $s->cnama }}
+                                    </option>
+                                    @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -86,13 +85,13 @@
                             <select name="ckode_asset_nonqr" class="form-control">
                                 <option value="">-- Pilih Kode Asset --</option>
                                 @foreach ($assetDropdown as $a)
-                                    @if ($a['jenis'] === 'NON_QR')
-                                        <option value="{{ $a['kode'] }}" data-niddept="{{ $a['niddept'] }}"
-                                            data-lokasi="{{ $a['lokasi'] }}" data-stok="{{ $a['qty'] }}">
-                                            {{ $a['kode'] }} — {{ $a['nama'] }} ({{ $a['lokasi'] }} | Stok:
-                                            {{ $a['qty'] }})
-                                        </option>
-                                    @endif
+                                @if ($a['jenis'] === 'NON_QR')
+                                <option value="{{ $a['kode'] }}" data-niddept="{{ $a['niddept'] }}"
+                                    data-lokasi="{{ $a['lokasi'] }}" data-stok="{{ $a['qty'] }}">
+                                    {{ $a['kode'] }} — {{ $a['nama'] }} ({{ $a['lokasi'] }} | Stok:
+                                    {{ $a['qty'] }})
+                                </option>
+                                @endif
                                 @endforeach
                             </select>
                         </div>
@@ -140,23 +139,16 @@
                             <label>Foto Asset (Opsional)</label>
                             <input type="file" name="foto" class="form-control">
                         </div>
-
                     </div>
-
                 </div>
 
                 {{-- FOOTER --}}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Batal
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        Simpan
-                    </button>
+                <div class="modal-footer d-flex justify-content-between w-100 gap-2">
+                    <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success flex-fill">Simpan</button>
                 </div>
-
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
