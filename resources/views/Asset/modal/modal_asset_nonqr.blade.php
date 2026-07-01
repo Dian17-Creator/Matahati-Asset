@@ -1,11 +1,10 @@
-<div class="modal fade" id="modalAssetNonQr">
-    <div class="modal-dialog">
-        <form method="POST" action="{{ route('asset.store') }}">
-            @csrf
+<div class="modal fade" id="modalAssetNonQr" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('asset.store') }}">
+                @csrf
 
-            <input type="hidden" name="jenis_asset" value="NONQR">
-
-            <div class="modal-content">
+                <input type="hidden" name="jenis_asset" value="NONQR">
                 <div class="modal-header" style="background-color: #B63352; color: white;">
                     <h5>Tambah Asset Non-QR</h5>
                 </div>
@@ -19,9 +18,9 @@
                             <select name="niddept" class="form-control" required>
                                 <option value="">-- Pilih Lokasi --</option>
                                 @foreach ($departments as $dept)
-                                    <option value="{{ $dept->nid }}">
-                                        {{ $dept->cname }}
-                                    </option>
+                                <option value="{{ $dept->nid }}">
+                                    {{ $dept->cname }}
+                                </option>
                                 @endforeach
                             </select>
                         </div>
@@ -32,9 +31,9 @@
                             <select name="nidsubkat" class="form-control" required>
                                 <option value="">-- Pilih Sub Kategori --</option>
                                 @foreach ($subkategoriAll->where('fqr', 0) as $sub)
-                                    <option value="{{ $sub->nid }}">
-                                        {{ $sub->kategori->cnama }} - {{ $sub->cnama }}
-                                    </option>
+                                <option value="{{ $sub->nid }}">
+                                    {{ $sub->kategori->cnama }} - {{ $sub->cnama }}
+                                </option>
                                 @endforeach
                             </select>
                         </div>
@@ -63,7 +62,7 @@
                         <select name="msatuan_id" class="form-control" required>
                             <option value="">-- Pilih Satuan --</option>
                             @foreach ($SatuanAll as $s)
-                                <option value="{{ $s->id }}">{{ $s->nama }}</option>
+                            <option value="{{ $s->id }}">{{ $s->nama }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -76,15 +75,12 @@
 
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Batal
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        Simpan
-                    </button>
+                <div class="modal-footer d-flex justify-content-between w-100 gap-2">
+                    <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success flex-fill">Simpan</button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
+
     </div>
 </div>
